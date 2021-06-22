@@ -43,7 +43,6 @@ app.post("/api/rust", async (req: Request, res: Response) => {
  */
 app.post("/api/python", async (req: Request, res: Response) => {
   const { codeString, testString } = req.body;
-  console.log("Running Python Script");
   const result = await pythonCodeRunner(codeString, testString);
   res.json(result);
 });
