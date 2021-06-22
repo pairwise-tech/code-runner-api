@@ -30,7 +30,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 /**
- * POST
+ * POST route to handle executing Rust code.
  */
 app.post("/api/rust", async (req: Request, res: Response) => {
   const { codeString, testString } = req.body;
@@ -38,6 +38,9 @@ app.post("/api/rust", async (req: Request, res: Response) => {
   res.json(result);
 });
 
+/**
+ * POST route to handle executing Python code.
+ */
 app.post("/api/python", async (req: Request, res: Response) => {
   const { codeString, testString } = req.body;
   console.log("Running Python Script");
