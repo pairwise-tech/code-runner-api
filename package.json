@@ -1,0 +1,53 @@
+{
+  "name": "pairwise-code-runner-api",
+  "description": "Code runner API server for non JS code challenges",
+  "version": "1.0.0",
+  "main": "build/app.js",
+  "private": true,
+  "author": "Pairwise Team",
+  "scripts": {
+    "prepare": "yarn gcp-build",
+    "gcp-build": "yarn build",
+    "build": "rimraf build && tsc",
+    "start": "node build/app.js",
+    "watch": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/app.ts",
+    "prettier": "prettier --list-different './src/**/*.{ts,tsx,json}'",
+    "prettier:fix": "prettier --write './src/**/*.{ts,tsx,json}'",
+    "format": "yarn prettier:fix",
+    "tsc": "tsc",
+    "test:unit": "jest",
+    "test:watch": "jest --watch",
+    "test": "yarn format && yarn test:unit"
+  },
+  "dependencies": {
+    "@types/cors": "^2.8.6",
+    "@types/express": "^4.17.6",
+    "@types/jest": "^26.0.3",
+    "@types/node": "^14.0.14",
+    "@types/shelljs": "^0.8.8",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "jest": "^26.1.0",
+    "prettier": "^2.0.5",
+    "rimraf": "^3.0.2",
+    "shelljs": "^0.8.4",
+    "ts-jest": "^26.1.1",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.5"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".test.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
+  }
+}

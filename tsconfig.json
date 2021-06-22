@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "commonjs",
+    "outDir": "build",
+    "baseUrl": "./",
+    "strict": true,
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "typeRoots": ["node_modules/@types"]
+  },
+  "exclude": ["node_modules", "build"],
+  "include": ["src", "global.d.ts"]
+}

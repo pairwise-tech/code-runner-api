@@ -1,0 +1,33 @@
+name: Pull Request Tests
+
+on:
+  pull_request:
+    branches:
+      - master
+
+env:
+  CI: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      # Setup NodeJS
+      - name: Setup NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      # Run install and build steps
+      - name: Install Dependencies
+        run: yarn
+
+      # Build the code
+      - name: Build the Project
+        run: yarn build
+
+      # Run checks
+      - name: Run Project Checks
+        run: yarn test
