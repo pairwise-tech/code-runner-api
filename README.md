@@ -32,4 +32,4 @@ $ yarn test
 
 ## Deployment
 
-This app is currently not deployed anywhere and only runs locally.
+This app is currently not deployed anywhere and only runs locally. The project needs to be dockerized so it the required command line tools and libraries will be definitively available, and then deployed if it is going to actually be used.
