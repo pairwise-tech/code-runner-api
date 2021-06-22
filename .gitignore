@@ -33,3 +33,6 @@ node_modules/
 # Build folders
 build/
 dist/
+
+# Rust Cargo build folder
+cargo-package-folder
