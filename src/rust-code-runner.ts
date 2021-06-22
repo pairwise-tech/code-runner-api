@@ -104,6 +104,14 @@ const compileAndRunRustCode = async (
   const result = await exec(CARGO_RUN_COMMAND);
   const { code, stdout, stderr } = result;
 
+  if (code !== 0) {
+    return {
+      stdout,
+      stderr,
+      testResult: false,
+    };
+  }
+
   console.log("Exit code:", code);
   console.log("Program output:", stdout);
   console.log("Program stderr:", stderr);
@@ -112,6 +120,12 @@ const compileAndRunRustCode = async (
   const testResult = fs.readFileSync(RESULT_FILE, { encoding: "utf-8" });
   console.log("RESULT:\n");
   console.log(testResult);
+
+  return {
+    stdout,
+    stderr,
+    testResult,
+  };
 };
 
 /** ===========================================================================
@@ -119,6 +133,4 @@ const compileAndRunRustCode = async (
  * ============================================================================
  */
 
-export default () => {
-  compileAndRunRustCode(RUST_CODE_STRING, RUST_TEST_STRING);
-};
+export default compileAndRunRustCode;

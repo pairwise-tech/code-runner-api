@@ -1,9 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
-import runner from "./runner";
-
-runner();
+import rustCodeRunner from "./rust-code-runner";
 
 /** ===========================================================================
  * Setup Server
@@ -16,7 +13,8 @@ const app = express();
 app.use(cors());
 
 // Enable parsing body
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 /**
  * Index route.
@@ -28,13 +26,13 @@ app.get("/", (req: Request, res: Response) => {
 /**
  * POST
  */
-app.post("/api", (req: Request, res: Response) => {
+app.post("/api/rust", async (req: Request, res: Response) => {
   const { body } = req;
-  const response = {
-    requestBody: body,
-    message: "Got a POST request at /api 🎉",
-  };
-  res.json(response);
+  const { codeString, testString } = body;
+  const result = await rustCodeRunner(codeString, testString);
+  console.log("RESULT:");
+  console.log(result);
+  res.json(result);
 });
 
 /** ===========================================================================
@@ -42,8 +40,10 @@ app.post("/api", (req: Request, res: Response) => {
  * ============================================================================
  */
 
-// const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 6001;
 
-// app.listen(PORT, () => {
-//   console.log(`Pairwise HTTP API is running on http://localhost:${PORT}`);
-// });
+app.listen(PORT, () => {
+  console.log(
+    `Pairwise Code Runner API is running on http://localhost:${PORT}`
+  );
+});
