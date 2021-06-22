@@ -6,17 +6,28 @@ import { exec } from "shelljs";
  * ============================================================================
  */
 
-const RUST_DIRECTORY = "./temp/cargo-package-folder";
-const RUST_SOURCE_FILE = `${RUST_DIRECTORY}/src/main.rs`;
-const TEST_RESULTS_FILE = "rust-test-results.txt";
+const RUST_DIRECTORY = "./temp/rust-test-folder";
+const TEST_FILE_PATH = `${RUST_DIRECTORY}/src/main.rs`;
+const PREVIEW_FILE_PATH= `${RUST_DIRECTORY}/src/main.rs`;
+const TEST_RESULTS_FILE_NAME = `test-results.txt`;
+const TEST_RESULTS_FILE_PATH = `${RUST_DIRECTORY}/${TEST_RESULTS_FILE_NAME}`;
+
+/**
+ * The prelude and postlude wrap the user's code in a main function. This
+ * is intended to assist the user in allowing them to write arbitrary code
+ * which can exist in the client and generate preview feedback. This is mainly
+ * intended to provide a better user experience, but may easily be adjusted
+ * in the future.
+ */
 
 const PRELUDE = `
   use std::fs::File;
   use std::io::prelude::*;
+
+  fn main() -> std::io::Result<()> {
 `;
 
 const POSTLUDE = `
-  fn main() -> std::io::Result<()> {
     let result = test();
     let result_string: &str;
     if result {
@@ -25,7 +36,7 @@ const POSTLUDE = `
         result_string = "false";
     }
 
-    let mut file = File::create("${TEST_RESULTS_FILE}")?;
+    let mut file = File::create("${TEST_RESULTS_FILE_NAME}")?;
     file.write(result_string.as_bytes())?;
     Ok(())
   }
@@ -40,7 +51,7 @@ const POSTLUDE = `
  * ============================================================================
  */
 
-const compileAndRunRustCode = async (
+const compileAndRun = async (
   codeString: string,
   testString: string
 ) => {
@@ -57,20 +68,33 @@ const compileAndRunRustCode = async (
   }
 
   // Build source file
-  const RUST_FILE = `
+  const TEST_FILE = `
     ${PRELUDE}
     ${codeString}
     ${testString}
     ${POSTLUDE}
   `;
 
-  // Write source file to Cargo main/src.rs
-  fs.writeFileSync(RUST_SOURCE_FILE, RUST_FILE);
+  // This file runs the user's code in isolation and is used to return
+  // standard output to render in the client preview panel
+  const PREVIEW_FILE = `
+    fn main() {
+      ${codeString}
+    }
+  `;
 
-  // Compile and run Rust file using Cargo
-  const CARGO_RUN_COMMAND = `cd ${RUST_DIRECTORY} && cargo run`;
-  const result = await exec(CARGO_RUN_COMMAND);
-  const { code, stdout, stderr } = result;
+  // Run preview file
+  fs.writeFileSync(PREVIEW_FILE_PATH, PREVIEW_FILE);
+  const PREVIEW_RUN_COMMAND = `cd ${RUST_DIRECTORY} && cargo run`;
+  const previewResult = await exec(PREVIEW_RUN_COMMAND);
+  const { stdout, stderr } = previewResult;
+
+  // Run test file
+  fs.writeFileSync(TEST_RESULTS_FILE_PATH, "");
+  fs.writeFileSync(TEST_FILE_PATH, TEST_FILE);
+  const TEST_RUN_COMMAND = `cd ${RUST_DIRECTORY} && cargo run`;
+  const result = await exec(TEST_RUN_COMMAND);
+  const { code } = result;
 
   // Any non 0 code represents a failure
   if (code !== 0) {
@@ -81,8 +105,7 @@ const compileAndRunRustCode = async (
     };
   }
 
-  const RESULT_FILE = `${RUST_DIRECTORY}/${TEST_RESULTS_FILE}`;
-  const testResult = fs.readFileSync(RESULT_FILE, { encoding: "utf-8" });
+  const testResult = fs.readFileSync(TEST_RESULTS_FILE_PATH, { encoding: "utf-8" });
 
   return {
     stdout,
@@ -96,4 +119,14 @@ const compileAndRunRustCode = async (
  * ============================================================================
  */
 
-export default compileAndRunRustCode;
+export default async (codeString: string, testString: string) => {
+  try {
+    return compileAndRun(codeString, testString);
+  } catch (err) {
+    return {
+      testResult: false,
+      stdout: "",
+      stderr: "An error occurred attempting to evaluate the challenge.",
+    };
+  }
+}

@@ -37,7 +37,7 @@ main()
  * ============================================================================
  */
 
-const compileAndRunRustCode = async (
+const compileAndRun = async (
   codeString: string,
   testString: string,
 ) => {
@@ -79,6 +79,7 @@ const compileAndRunRustCode = async (
   const result = await exec(TEST_RUN_COMMAND);
   const { code } = result;
 
+  // Any non 0 code represents a failure
   if (code !== 0) {
     return {
       stdout,
@@ -101,4 +102,15 @@ const compileAndRunRustCode = async (
  * ============================================================================
  */
 
-export default compileAndRunRustCode;
+ export default async (codeString: string, testString: string) => {
+  try {
+    return compileAndRun(codeString, testString);
+  } catch (err) {
+    return {
+      testResult: false,
+      stdout: "",
+      stderr: "An error occurred attempting to evaluate the challenge.",
+    };
+  }
+}
+
