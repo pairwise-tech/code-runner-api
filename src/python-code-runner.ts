@@ -13,41 +13,6 @@ const TEST_RESULTS_FILE = `${PYTHON_DIRECTORY}/${OUTPUT_FILE_NAME}`;
 
 const PRELUDE = ``;
 
-const CODE_STRING = `
-def add(a, b):
-  return a + b
-`;
-
-const TEST_STRING = `
-def test():
-  result = add(10, 15)
-  expected = (25)
-  if result != expected:
-      return False
-
-  result = add(100, 150)
-  expected = (250)
-  if result != expected:
-      return False
-
-  result = add(-10, 10)
-  expected = (0)
-  if result != expected:
-      return False
-
-  result = add(1000, 5000)
-  expected = (6000)
-  if result != expected:
-      return False
-
-  result = add(250, -150)
-  expected = (100)
-  if result != expected:
-      return False
-
-  return True
-`;
-
 const POSTLUDE = `
 def main():
   result = test()
