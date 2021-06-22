@@ -1,6 +1,8 @@
 # Pairwise Code Runner API
 
-An Express server which exposes provides an API to evaluate non JavaScript code challenges, e.g. Python, Rust, etc.
+An Express server which exposes provides an API to evaluate non-JavaScript code challenges, e.g. Python, Rust, etc.
+
+The app is deployed to: https://pairwise-code-runner-api.uc.r.appspot.com/.
 
 ## Getting Started
 
@@ -11,7 +13,7 @@ Install [NodeJS](https://nodejs.org/en/) and [yarn](https://yarnpkg.com/lang/en/
 $ yarn install
 
 # Run the server for development
-$ yarn watch
+$ yarn dev
 
 # Run the build
 $ yarn build
@@ -32,4 +34,4 @@ $ yarn test
 
 ## Deployment
 
-This app is currently not deployed anywhere and only runs locally. The project needs to be dockerized so it the required command line tools and libraries will be definitively available, and then deployed if it is going to actually be used.
+This app is deployed using Google App Engine and re-deploys on any commits to the `main` branch.
