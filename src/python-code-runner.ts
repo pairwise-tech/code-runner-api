@@ -72,12 +72,12 @@ const compileAndRun = async (
   // Run preview file
   const PREVIEW_RUN_COMMAND = `python3 ${PREVIEW_FILE_PATH}`;
   const previewResult = await exec(PREVIEW_RUN_COMMAND);
-  const { stdout, stderr } = previewResult;
+  const { stdout } = previewResult;
 
   // Run test file
   const TEST_RUN_COMMAND = `python3 ${TEST_FILE_PATH}`;
   const result = await exec(TEST_RUN_COMMAND);
-  const { code } = result;
+  const { code, stderr } = result;
 
   // Any non 0 code represents a failure
   if (code !== 0) {

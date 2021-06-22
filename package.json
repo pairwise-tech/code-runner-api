@@ -18,7 +18,9 @@
     "tsc": "tsc",
     "test:unit": "jest",
     "test:watch": "jest --watch",
-    "test": "yarn format && yarn test:unit"
+    "test": "yarn format && yarn test:unit",
+    "docker:build": "docker build -t pairwise-code-runner-api-image .",
+    "docker:run": "docker run -d -it --rm -p 6001:6001 --name pairwise-code-runner-api pairwise-code-runner-api-image"
   },
   "dependencies": {
     "@types/cors": "^2.8.6",

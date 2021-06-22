@@ -1,0 +1,6 @@
+.gitignore
+**/.DS_Store
+
+temp
+build
+node_modules

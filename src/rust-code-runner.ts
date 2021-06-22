@@ -87,14 +87,14 @@ const compileAndRun = async (
   fs.writeFileSync(PREVIEW_FILE_PATH, PREVIEW_FILE);
   const PREVIEW_RUN_COMMAND = `cd ${RUST_DIRECTORY} && cargo run`;
   const previewResult = await exec(PREVIEW_RUN_COMMAND);
-  const { stdout, stderr } = previewResult;
+  const { stdout } = previewResult;
 
   // Run test file
   fs.writeFileSync(TEST_RESULTS_FILE_PATH, "");
   fs.writeFileSync(TEST_FILE_PATH, TEST_FILE);
   const TEST_RUN_COMMAND = `cd ${RUST_DIRECTORY} && cargo run`;
   const result = await exec(TEST_RUN_COMMAND);
-  const { code } = result;
+  const { code, stderr } = result;
 
   // Any non 0 code represents a failure
   if (code !== 0) {
