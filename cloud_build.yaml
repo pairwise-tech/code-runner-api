@@ -12,3 +12,5 @@ steps:
 
 images:
   - "us-central1-docker.pkg.dev/$PROJECT_ID/pairwise-code-runner-api/image:tag1"
+
+timeout: "1600s"
