@@ -6,7 +6,9 @@ import { exec } from "shelljs";
  * ============================================================================
  */
 
-const log = (message: string) => console.log(`- [LOG]: ${message}`);
+const RUST_DIRECTORY = "./temp/cargo-package-folder";
+const RUST_SOURCE_FILE = `${RUST_DIRECTORY}/src/main.rs`;
+const TEST_RESULTS_FILE = "rust-test-results.txt";
 
 const PRELUDE = `
   use std::fs::File;
@@ -23,7 +25,7 @@ const POSTLUDE = `
         result_string = "false";
     }
 
-    let mut file = File::create("test-results.txt")?;
+    let mut file = File::create("${TEST_RESULTS_FILE}")?;
     file.write(result_string.as_bytes())?;
     Ok(())
   }
@@ -42,12 +44,8 @@ const compileAndRunRustCode = async (
   codeString: string,
   testString: string
 ) => {
-  const RUST_DIRECTORY = "./cargo-package-folder";
-  const RUST_SOURCE_FILE = `${RUST_DIRECTORY}/src/main.rs`;
-
   // Create Cargo Package if it doesn't exist
   if (!fs.existsSync(RUST_DIRECTORY)) {
-    log("Creating Rust Cargo Package directory.");
     exec(
       `cargo init ${RUST_DIRECTORY}`,
       (code: number, stdout: string, stderr: string) => {
@@ -56,8 +54,6 @@ const compileAndRunRustCode = async (
         console.log("Program stderr:", stderr);
       }
     );
-  } else {
-    log("Rust Cargo Package directory already exists.");
   }
 
   // Build source file
@@ -85,7 +81,7 @@ const compileAndRunRustCode = async (
     };
   }
 
-  const RESULT_FILE = `${RUST_DIRECTORY}/test-results.txt`;
+  const RESULT_FILE = `${RUST_DIRECTORY}/${TEST_RESULTS_FILE}`;
   const testResult = fs.readFileSync(RESULT_FILE, { encoding: "utf-8" });
 
   return {

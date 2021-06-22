@@ -36,3 +36,4 @@ dist/
 
 # Rust Cargo build folder
 cargo-package-folder
+temp/
