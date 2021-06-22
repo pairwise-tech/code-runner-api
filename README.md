@@ -1,8 +1,6 @@
-# Pairwise Example HTTP API
+# Pairwise Code Runner API
 
-An Express server which exposes an example HTTP API for the Pairwise Async Challenges.
-
-The server exposes simple `GET`, `PUT`, `POST`, and `DELETE` HTTP APIs at the `/api` path. The server is running at: [https://pairwise-example-http-api.appspot.com](https://pairwise-example-http-api.appspot.com).
+An Express server which exposes provides an API to evaluate non JavaScript code challenges, e.g. Python, Rust, etc.
 
 ## Getting Started
 
@@ -34,4 +32,4 @@ $ yarn test
 
 ## Deployment
 
-The app is deployed to Google Cloud App Engine using Google Cloud Build when any commits are pushed to the `master` branch.
+This app is currently not deployed anywhere and only runs locally.

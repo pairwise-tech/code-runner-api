@@ -9,10 +9,8 @@ import rustCodeRunner from "./rust-code-runner";
 
 const app = express();
 
-// Enable cors
+// Server config
 app.use(cors());
-
-// Enable parsing body
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -27,11 +25,8 @@ app.get("/", (req: Request, res: Response) => {
  * POST
  */
 app.post("/api/rust", async (req: Request, res: Response) => {
-  const { body } = req;
-  const { codeString, testString } = body;
+  const { codeString, testString } = req.body;
   const result = await rustCodeRunner(codeString, testString);
-  console.log("RESULT:");
-  console.log(result);
   res.json(result);
 });
 
