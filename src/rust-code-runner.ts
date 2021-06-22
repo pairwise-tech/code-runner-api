@@ -8,7 +8,7 @@ import { exec } from "shelljs";
 
 const RUST_DIRECTORY = "./temp/rust-test-folder";
 const TEST_FILE_PATH = `${RUST_DIRECTORY}/src/main.rs`;
-const PREVIEW_FILE_PATH= `${RUST_DIRECTORY}/src/main.rs`;
+const PREVIEW_FILE_PATH = `${RUST_DIRECTORY}/src/main.rs`;
 const TEST_RESULTS_FILE_NAME = `test-results.txt`;
 const TEST_RESULTS_FILE_PATH = `${RUST_DIRECTORY}/${TEST_RESULTS_FILE_NAME}`;
 
@@ -51,10 +51,7 @@ const POSTLUDE = `
  * ============================================================================
  */
 
-const compileAndRun = async (
-  codeString: string,
-  testString: string
-) => {
+const compileAndRun = async (codeString: string, testString: string) => {
   // Create Cargo Package if it doesn't exist
   if (!fs.existsSync(RUST_DIRECTORY)) {
     exec(
@@ -105,7 +102,9 @@ const compileAndRun = async (
     };
   }
 
-  const testResult = fs.readFileSync(TEST_RESULTS_FILE_PATH, { encoding: "utf-8" });
+  const testResult = fs.readFileSync(TEST_RESULTS_FILE_PATH, {
+    encoding: "utf-8",
+  });
 
   return {
     stdout,
@@ -129,4 +128,4 @@ export default async (codeString: string, testString: string) => {
       stderr: "An error occurred attempting to evaluate the challenge.",
     };
   }
-}
+};
