@@ -4,3 +4,6 @@
 temp
 build
 node_modules
+
+.vscode
+.github

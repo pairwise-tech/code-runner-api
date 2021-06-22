@@ -1,3 +1,7 @@
+# The file is named differently than the default because the app needs to be deployed
+# using the custom Dockerfile, but there's no way to easily do that and then trigger
+# an automatic deployment that I could find. But, you can rename this cloudbuild.yaml
+# file and then use this configuration to trigger the Docker build. Seems to work.
 steps:
   - name: "gcr.io/cloud-builders/docker"
     args:
