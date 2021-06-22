@@ -7,9 +7,9 @@ import { exec } from "shelljs";
  */
 
 const PYTHON_DIRECTORY = "./temp/python-test-folder";
-const PYTHON_SOURCE_FILE = `${PYTHON_DIRECTORY}/main.py`;
-const OUTPUT_FILE_NAME = "python-test-results.txt";
-const TEST_RESULTS_FILE = `${PYTHON_DIRECTORY}/${OUTPUT_FILE_NAME}`;
+const TEST_FILE_PATH = `${PYTHON_DIRECTORY}/test.py`;
+const PREVIEW_FILE_PATH= `${PYTHON_DIRECTORY}/main.py`;
+const TEST_RESULTS_FILE_PATH = `${PYTHON_DIRECTORY}/test-results.txt`;
 
 const PRELUDE = ``;
 
@@ -22,7 +22,7 @@ def main():
   else:
     resultString = "false"
 
-  text_file = open("${TEST_RESULTS_FILE}", "w")
+  text_file = open("${TEST_RESULTS_FILE_PATH}", "w")
   n = text_file.write(resultString)
   text_file.close()
 
@@ -39,7 +39,7 @@ main()
 
 const compileAndRunRustCode = async (
   codeString: string,
-  testString: string
+  testString: string,
 ) => {
   // Create Python temp directory
   if (!fs.existsSync(PYTHON_DIRECTORY)) {
@@ -47,25 +47,37 @@ const compileAndRunRustCode = async (
   }
 
   // Build source file
-  const PYTHON_FILE = `
+  const TEST_FILE = `
     ${PRELUDE}
     ${codeString}
     ${testString}
     ${POSTLUDE}
   `;
 
+  // This file runs the user's code in isolation and is used to return
+  // standard output to render in the client preview panel
+  const PREVIEW_FILE = `
+    ${codeString}
+  `;
+
   // Create files for Python script and test results
-  fs.writeFileSync(PYTHON_SOURCE_FILE, PYTHON_FILE);
-  fs.writeFileSync(TEST_RESULTS_FILE, "");
+  fs.writeFileSync(TEST_RESULTS_FILE_PATH, "");
+  fs.writeFileSync(TEST_FILE_PATH, TEST_FILE);
+  fs.writeFileSync(PREVIEW_FILE_PATH, PREVIEW_FILE);
+  
+  // Format Python files
+  await exec(`autopep8 --in-place --aggressive --aggressive ${TEST_FILE}`);
+  await exec(`autopep8 --in-place --aggressive --aggressive ${PREVIEW_FILE}`);
 
-  // Format Python file
-  const FORMAT_COMMAND = `autopep8 --in-place --aggressive --aggressive ${PYTHON_SOURCE_FILE}`;
-  await exec(FORMAT_COMMAND);
+  // Run preview file
+  const PREVIEW_RUN_COMMAND = `python3 ${PREVIEW_FILE_PATH}`;
+  const previewResult = await exec(PREVIEW_RUN_COMMAND);
+  const { stdout, stderr } = previewResult;
 
-  // Execute Python script using python3
-  const PYTHON_RUN_COMMAND = `python3 ${PYTHON_SOURCE_FILE}`;
-  const result = await exec(PYTHON_RUN_COMMAND);
-  const { code, stdout, stderr } = result;
+  // Run test file
+  const TEST_RUN_COMMAND = `python3 ${TEST_FILE_PATH}`;
+  const result = await exec(TEST_RUN_COMMAND);
+  const { code } = result;
 
   if (code !== 0) {
     return {
@@ -75,7 +87,7 @@ const compileAndRunRustCode = async (
     };
   }
 
-  const testResult = fs.readFileSync(TEST_RESULTS_FILE, { encoding: "utf-8" });
+  const testResult = fs.readFileSync(TEST_RESULTS_FILE_PATH, { encoding: "utf-8" });
 
   return {
     stdout,
