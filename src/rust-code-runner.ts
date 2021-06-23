@@ -1,5 +1,6 @@
 import fs from "fs";
 import { exec } from "shelljs";
+import { createTestResult, tryCatchCodeExecution } from "./utils";
 
 /** ===========================================================================
  * Types & Config
@@ -84,33 +85,16 @@ const compileAndRun = async (codeString: string, testString: string) => {
   fs.writeFileSync(PREVIEW_FILE_PATH, PREVIEW_FILE);
   const PREVIEW_RUN_COMMAND = `cd ${RUST_DIRECTORY} && cargo run`;
   const previewResult = await exec(PREVIEW_RUN_COMMAND);
-  const { stdout } = previewResult;
 
   // Run test file
   fs.writeFileSync(TEST_RESULTS_FILE_PATH, "");
   fs.writeFileSync(TEST_FILE_PATH, TEST_FILE);
+
+  // Run tests
   const TEST_RUN_COMMAND = `cd ${RUST_DIRECTORY} && cargo run`;
-  const result = await exec(TEST_RUN_COMMAND);
-  const { code, stderr } = result;
+  const testResult = await exec(TEST_RUN_COMMAND);
 
-  // Any non 0 code represents a failure
-  if (code !== 0) {
-    return {
-      stdout,
-      stderr,
-      testResult: false,
-    };
-  }
-
-  const testResult = fs.readFileSync(TEST_RESULTS_FILE_PATH, {
-    encoding: "utf-8",
-  });
-
-  return {
-    stdout,
-    stderr,
-    testResult,
-  };
+  return createTestResult(previewResult, testResult, TEST_RESULTS_FILE_PATH);
 };
 
 /** ===========================================================================
@@ -118,14 +102,4 @@ const compileAndRun = async (codeString: string, testString: string) => {
  * ============================================================================
  */
 
-export default async (codeString: string, testString: string) => {
-  try {
-    return compileAndRun(codeString, testString);
-  } catch (err) {
-    return {
-      testResult: false,
-      stdout: "",
-      stderr: "An error occurred attempting to evaluate the challenge.",
-    };
-  }
-};
+export default tryCatchCodeExecution(compileAndRun);

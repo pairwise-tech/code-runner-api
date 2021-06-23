@@ -1,5 +1,6 @@
 import fs from "fs";
 import { exec } from "shelljs";
+import { createTestResult, tryCatchCodeExecution } from "./utils";
 
 /** ===========================================================================
  * Types & Config
@@ -69,31 +70,12 @@ const compileAndRun = async (codeString: string, testString: string) => {
   // Run preview file
   const PREVIEW_RUN_COMMAND = `python3 ${PREVIEW_FILE_PATH}`;
   const previewResult = await exec(PREVIEW_RUN_COMMAND);
-  const { stdout } = previewResult;
 
   // Run test file
   const TEST_RUN_COMMAND = `python3 ${TEST_FILE_PATH}`;
-  const result = await exec(TEST_RUN_COMMAND);
-  const { code, stderr } = result;
+  const testResult = await exec(TEST_RUN_COMMAND);
 
-  // Any non 0 code represents a failure
-  if (code !== 0) {
-    return {
-      stdout,
-      stderr,
-      testResult: false,
-    };
-  }
-
-  const testResult = fs.readFileSync(TEST_RESULTS_FILE_PATH, {
-    encoding: "utf-8",
-  });
-
-  return {
-    stdout,
-    stderr,
-    testResult,
-  };
+  return createTestResult(previewResult, testResult, TEST_RESULTS_FILE_PATH);
 };
 
 /** ===========================================================================
@@ -101,14 +83,4 @@ const compileAndRun = async (codeString: string, testString: string) => {
  * ============================================================================
  */
 
-export default async (codeString: string, testString: string) => {
-  try {
-    return compileAndRun(codeString, testString);
-  } catch (err) {
-    return {
-      testResult: false,
-      stdout: "",
-      stderr: "An error occurred attempting to evaluate the challenge.",
-    };
-  }
-};
+export default tryCatchCodeExecution(compileAndRun);

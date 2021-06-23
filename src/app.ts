@@ -3,6 +3,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import rustCodeRunner from "./rust-code-runner";
 import pythonCodeRunner from "./python-code-runner";
+import golangCodeRunner from "./golang-code-runner";
 
 // Create temp directory which will store temporary code output files
 const TEMP_DIRECTORY = "temp";
@@ -44,6 +45,15 @@ app.post("/api/rust", async (req: Request, res: Response) => {
 app.post("/api/python", async (req: Request, res: Response) => {
   const { codeString, testString } = req.body;
   const result = await pythonCodeRunner(codeString, testString);
+  res.json(result);
+});
+
+/**
+ * POST route to handle executing Golang code.
+ */
+app.post("/api/golang", async (req: Request, res: Response) => {
+  const { codeString, testString } = req.body;
+  const result = await golangCodeRunner(codeString, testString);
   res.json(result);
 });
 

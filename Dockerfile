@@ -16,6 +16,12 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 # Add cargo to path
 ENV PATH="/root/.cargo/bin:${PATH}"
 
+# Get Go
+COPY --from=golang:1.13-alpine /usr/local/go/ /usr/local/go/
+ 
+ # Add go to path
+ENV PATH="/usr/local/go/bin:${PATH}"
+
 # Get Python formatter
 RUN pip3 install --upgrade autopep8
 
