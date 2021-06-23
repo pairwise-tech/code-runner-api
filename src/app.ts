@@ -5,7 +5,7 @@ import rustCodeRunner from "./rust-code-runner";
 import pythonCodeRunner from "./python-code-runner";
 import golangCodeRunner from "./golang-code-runner";
 
-// Create temp directory which will store temporary code output files
+// Create a local temp directory which will store temporary code output files
 const TEMP_DIRECTORY = "temp";
 if (!fs.existsSync(TEMP_DIRECTORY)) {
   fs.mkdirSync(TEMP_DIRECTORY);
@@ -62,6 +62,7 @@ app.post("/api/golang", async (req: Request, res: Response) => {
  * ============================================================================
  */
 
+// NOTE: Google App Engine flexible runtime requires exposing port 8080
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
