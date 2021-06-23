@@ -24,29 +24,6 @@ var _ = os.Create
 var __ = fmt.Println
 `;
 
-const CODE = `
-  func add(x int, y int) int {
-    return x + y
-  }
-
-  func main() {
-    result := add(2, 3)
-    fmt.Println("RESULT:")
-    fmt.Println(result)
-  }
-`;
-
-const TEST = ` 
-  func test() bool {
-    result := add(2, 3)
-    if result == 5 {
-      return true
-    } else {
-      return false
-    }	
-  }
-`;
-
 const POSTLUDE = `
 func main() {
 	result := test()
@@ -54,7 +31,7 @@ func main() {
   if result {
     resultString = "true"
   } else {
-    resultString = "true"
+    resultString = "false"
   }
 
   // Write the result file
@@ -73,13 +50,14 @@ func main() {
 }
 `;
 
+const MAIN_FUNC_SIGNATURE = "func main()";
+
 /**
  * Helper function which strips out a main function, if it exists in
  * a code string, by matching the function signature and the {...}
  * brackets which define the function body.
  */
 const stripMainFunctionIfExists = (codeString: string) => {
-  const MAIN_FUNC_SIGNATURE = "func main()";
   if (codeString.includes(MAIN_FUNC_SIGNATURE)) {
     const startingIndex = codeString.indexOf(MAIN_FUNC_SIGNATURE);
     const firstBracket = startingIndex + MAIN_FUNC_SIGNATURE.length;
@@ -106,6 +84,17 @@ const stripMainFunctionIfExists = (codeString: string) => {
   }
 
   // Apply no changes by default
+  return codeString;
+};
+
+/**
+ * Add placeholder main function to avoid compilation errors.
+ */
+const formatPreviewCodeString = (codeString: string) => {
+  if (!codeString.includes(MAIN_FUNC_SIGNATURE)) {
+    return `${codeString}\nfunc main() {}`;
+  }
+
   return codeString;
 };
 
@@ -138,7 +127,7 @@ const compileAndRun = async (
   // standard output to render in the client preview panel
   const PREVIEW_FILE = `
     ${PRELUDE}
-    ${codeString}
+    ${formatPreviewCodeString(codeString)}
   `;
 
   // Create files for Python script and test results
