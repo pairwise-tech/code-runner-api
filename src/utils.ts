@@ -6,6 +6,10 @@ import { ShellString } from "shelljs";
  * ============================================================================
  */
 
+// A global cache used to memoize code -> result combinations to reduce
+// compute time and overhead
+const globalCodeCache = new Map();
+
 const defaultFailureResult = {
   passed: false,
   previewOutput: {
@@ -20,12 +24,39 @@ const defaultFailureResult = {
   },
 };
 
+const removeWhitespace = (x: string) => x.replace(/ /gi, "");
+
+/**
+ * Create a unique code key by stringify-ing the code and the strings and
+ * removing all whitespace.
+ */
+const createCodeKey = (codeString: string, testString: string) => {
+  return removeWhitespace(codeString + testString);
+};
+
+/**
+ * Wrap the code execution runner in a try catch statement and provide
+ * caching support to minimize compute time.
+ */
 export const tryCatchCodeExecution = (
   testFn: (codeString: string, testString: string) => Promise<TestResult>
 ) => {
-  return (codeString: string, testString: string) => {
+  return async (codeString: string, testString: string) => {
     try {
-      return testFn(codeString, testString);
+      // First compute a key from the input code strings and check if this
+      // combination has been tested previously and recorded in the cache
+      const codeKey = createCodeKey(codeString, testString);
+      if (globalCodeCache.has(codeKey)) {
+        return globalCodeCache.get(codeKey);
+      }
+
+      // If not, compute the result
+      const result = await testFn(codeString, testString);
+
+      // Cache the result first, and then return it
+      globalCodeCache.set(codeKey, result);
+
+      return result;
     } catch (err) {
       return defaultFailureResult;
     }
