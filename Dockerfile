@@ -29,7 +29,4 @@ RUN pip3 install --upgrade autopep8
 RUN yarn
 RUN yarn build
 
-# Expose port
-EXPOSE 6001
-
 CMD ["node", "build/app.js"]
