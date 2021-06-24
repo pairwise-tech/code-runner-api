@@ -17,11 +17,13 @@ package main
 import (
   "os"
   "fmt"
+  "strings"
 )
 
 // Hack to avoid compilation error from unused imports...
 var _ = os.Create
 var __ = fmt.Println
+var ___ = strings.ToUpper
 `;
 
 const POSTLUDE = `

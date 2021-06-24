@@ -32,6 +32,16 @@ $ yarn test:unit
 $ yarn test
 ```
 
+To run the app locally using Docker use the following commands:
+
+```sh
+# Build the Docker image
+$ yarn docker:build
+
+# Run the container
+$ yarn docker:run
+```
+
 ## Deployment
 
 This app is deployed using Google App Engine and re-deploys on any commits to the `main` branch.
