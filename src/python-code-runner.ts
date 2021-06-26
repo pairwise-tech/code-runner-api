@@ -12,7 +12,10 @@ const TEST_FILE_PATH = `${PYTHON_DIRECTORY}/test.py`;
 const PREVIEW_FILE_PATH = `${PYTHON_DIRECTORY}/main.py`;
 const TEST_RESULTS_FILE_PATH = `${PYTHON_DIRECTORY}/test-results.txt`;
 
-const PRELUDE = ``;
+// import requests to make http requests
+const PRELUDE = `
+import requests
+`;
 
 const POSTLUDE = `
 def main():
@@ -55,6 +58,7 @@ const compileAndRun = async (codeString: string, testString: string) => {
   // This file runs the user's code in isolation and is used to return
   // standard output to render in the client preview panel
   const PREVIEW_FILE = `
+    ${PRELUDE}
     ${codeString}
   `;
 
