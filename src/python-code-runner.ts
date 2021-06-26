@@ -12,10 +12,10 @@ const TEST_FILE_PATH = `${PYTHON_DIRECTORY}/test.py`;
 const PREVIEW_FILE_PATH = `${PYTHON_DIRECTORY}/main.py`;
 const TEST_RESULTS_FILE_PATH = `${PYTHON_DIRECTORY}/test-results.txt`;
 
-// import requests to make http requests
-const PRELUDE = `
-import requests
-`;
+// TODO: import requests to make http requests
+// e.g. import requests
+// Then pip install the module in the Docker image
+const PRELUDE = ``;
 
 const POSTLUDE = `
 def main():
