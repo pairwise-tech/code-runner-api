@@ -6,11 +6,19 @@ import { ShellString } from "shelljs";
  * ============================================================================
  */
 
-// A global cache used to memoize code -> result combinations to reduce
-// compute time and overhead
-const globalCodeCache = new Map();
+export interface Output {
+  code: number;
+  stdout: string;
+  stderr: string;
+}
 
-const defaultFailureResult = {
+export interface TestResult {
+  passed: boolean;
+  testOutput: Output;
+  previewOutput: Output;
+}
+
+const defaultFailureResult: TestResult = {
   passed: false,
   previewOutput: {
     code: 1,
@@ -24,11 +32,19 @@ const defaultFailureResult = {
   },
 };
 
+/**
+ * A global cache used to memoize code -> result combinations to reduce
+ * compute time and overhead.
+ */
+const globalCodeCache: Map<string, TestResult> = new Map();
+
 const removeWhitespace = (x: string) => x.replace(/ /gi, "");
 
 /**
  * Create a unique code key by stringify-ing the code and the strings and
- * removing all whitespace.
+ * removing all whitespace. This will result in long object key strings,
+ * but it turns out the size limit for keys is very large, potentially
+ * up to the maximum size for a string.
  */
 const createCodeKey = (codeString: string, testString: string) => {
   return removeWhitespace(codeString + testString);
@@ -41,13 +57,17 @@ const createCodeKey = (codeString: string, testString: string) => {
 export const tryCatchCodeExecution = (
   testFn: (codeString: string, testString: string) => Promise<TestResult>
 ) => {
-  return async (codeString: string, testString: string) => {
+  return async (
+    codeString: string,
+    testString: string
+  ): Promise<TestResult> => {
     try {
       // First compute a key from the input code strings and check if this
       // combination has been tested previously and recorded in the cache
       const codeKey = createCodeKey(codeString, testString);
-      if (globalCodeCache.has(codeKey)) {
-        return globalCodeCache.get(codeKey);
+      const cachedResult = globalCodeCache.get(codeKey);
+      if (cachedResult !== undefined) {
+        return cachedResult;
       }
 
       // If not, compute the result
@@ -63,18 +83,6 @@ export const tryCatchCodeExecution = (
   };
 };
 
-export interface Output {
-  code: number;
-  stdout: string;
-  stderr: string;
-}
-
-export interface TestResult {
-  passed: boolean;
-  testOutput: Output;
-  previewOutput: Output;
-}
-
 /**
  * Format preview and test result output into a standardized response.
  */
@@ -84,16 +92,20 @@ export const createTestResult = (
   testResultsFilePath: string
 ): TestResult => {
   let passed = false;
+
+  // Non-zero exit codes represent some failure
   if (testOutput.code !== 0) {
     passed = false;
   } else {
+    // If exit code is 0, read the test result from the output file
+    // If should be a simple string: "true" or "false".
     const testResult = fs.readFileSync(testResultsFilePath, {
       encoding: "utf-8",
     });
     passed = testResult === "true" ? true : false;
   }
 
-  return {
+  const result: TestResult = {
     passed,
     testOutput: {
       code: testOutput.code,
@@ -106,4 +118,6 @@ export const createTestResult = (
       stderr: previewOutput.stderr,
     },
   };
+
+  return result;
 };
