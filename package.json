@@ -1,5 +1,5 @@
 {
-  "name": "pairwise-code-runner-api",
+  "name": "code-runner-api",
   "description": "Code runner API server for non JS code challenges, e.g. Python, Rust, etc.",
   "version": "1.0.0",
   "main": "build/app.js",
