@@ -5,10 +5,27 @@ import rustCodeRunner from "./rust-code-runner";
 import pythonCodeRunner from "./python-code-runner";
 import golangCodeRunner from "./golang-code-runner";
 
-// Create a local temp directory which will store temporary code output files
+export type SupportedLanguage = "python" | "golang" | "rust";
+
 const TEMP_DIRECTORY = "temp";
+
 if (!fs.existsSync(TEMP_DIRECTORY)) {
+  console.log(`- [LOG]: ${TEMP_DIRECTORY} does not exist, creating it.`);
   fs.mkdirSync(TEMP_DIRECTORY);
+}
+
+const tempDirectories = [
+  `${TEMP_DIRECTORY}/python`,
+  `${TEMP_DIRECTORY}/rust`,
+  `${TEMP_DIRECTORY}/golang`,
+];
+
+// Create a local temp directories for each language
+for (const dir of tempDirectories) {
+  if (!fs.existsSync(dir)) {
+    console.log(`- [LOG]: ${dir} does not exist, creating it.`);
+    fs.mkdirSync(dir);
+  }
 }
 
 /** ===========================================================================
@@ -35,7 +52,7 @@ app.get("/", (req: Request, res: Response) => {
  */
 app.post("/api/rust", async (req: Request, res: Response) => {
   const { codeString, testString } = req.body;
-  const result = await rustCodeRunner(codeString, testString);
+  const result = await rustCodeRunner("rust", codeString, testString);
   res.json(result);
 });
 
@@ -44,7 +61,7 @@ app.post("/api/rust", async (req: Request, res: Response) => {
  */
 app.post("/api/python", async (req: Request, res: Response) => {
   const { codeString, testString } = req.body;
-  const result = await pythonCodeRunner(codeString, testString);
+  const result = await pythonCodeRunner("python", codeString, testString);
   res.json(result);
 });
 
@@ -53,7 +70,7 @@ app.post("/api/python", async (req: Request, res: Response) => {
  */
 app.post("/api/golang", async (req: Request, res: Response) => {
   const { codeString, testString } = req.body;
-  const result = await golangCodeRunner(codeString, testString);
+  const result = await golangCodeRunner("golang", codeString, testString);
   res.json(result);
 });
 

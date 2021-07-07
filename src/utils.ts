@@ -1,5 +1,8 @@
 import fs from "fs";
+import rimraf from "rimraf";
 import { ShellString } from "shelljs";
+import shortid from "shortid";
+import { SupportedLanguage } from "./app";
 
 /** ===========================================================================
  * Shared Utils
@@ -50,14 +53,19 @@ const createCodeKey = (codeString: string, testString: string) => {
   return removeWhitespace(codeString + testString);
 };
 
+export type TestExecutor = (
+  directoryId: string,
+  codeString: string,
+  testString: string
+) => Promise<TestResult>;
+
 /**
  * Wrap the code execution runner in a try catch statement and provide
  * caching support to minimize compute time.
  */
-export const tryCatchCodeExecution = (
-  testFn: (codeString: string, testString: string) => Promise<TestResult>
-) => {
+export const tryCatchCodeExecution = (testFn: TestExecutor) => {
   return async (
+    language: SupportedLanguage,
     codeString: string,
     testString: string
   ): Promise<TestResult> => {
@@ -67,17 +75,30 @@ export const tryCatchCodeExecution = (
       const codeKey = createCodeKey(codeString, testString);
       const cachedResult = globalCodeCache.get(codeKey);
       if (cachedResult !== undefined) {
+        console.log(
+          `- [LOG]: Returning cached result for ${language} challenge.`
+        );
         return cachedResult;
       }
 
+      const id = shortid.generate();
+      const dir = `./temp/${language}/${id}`;
+
+      console.log(`- [LOG]: Creating ${dir}`);
+      fs.mkdirSync(dir);
+
       // If not, compute the result
-      const result = await testFn(codeString, testString);
+      const result = await testFn(id, codeString, testString);
+
+      console.log(`- [LOG]: Removing ${dir}`);
+      rimraf.sync(dir);
 
       // Cache the result first, and then return it
       globalCodeCache.set(codeKey, result);
 
       return result;
     } catch (err) {
+      console.log(err);
       return defaultFailureResult;
     }
   };
