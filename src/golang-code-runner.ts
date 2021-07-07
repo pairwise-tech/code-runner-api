@@ -1,56 +1,110 @@
 import fs from "fs";
 import { exec } from "shelljs";
-import { createTestResult, TestResult, tryCatchCodeExecution } from "./utils";
+import {
+  createTestResult,
+  TestExecutor,
+  TestResult,
+  tryCatchCodeExecution,
+} from "./utils";
 
 /** ===========================================================================
- * Types & Config
+ * Main Function
+ * ----------------------------------------------------------------------------
+ * This takes a user code string and test code string, sandwiches them between
+ * the prelude and postlude defined above and then runs them with Python.
  * ============================================================================
  */
 
-const GOLANG_DIRECTORY = "./temp/golang-test-folder";
-const TEST_FILE_PATH = `${GOLANG_DIRECTORY}/test.go`;
-const PREVIEW_FILE_PATH = `${GOLANG_DIRECTORY}/main.go`;
-const TEST_RESULTS_FILE_PATH = `${GOLANG_DIRECTORY}/test-results.txt`;
+const compileAndRun: TestExecutor = async (
+  directoryId,
+  codeString,
+  testString
+): Promise<TestResult> => {
+  const GOLANG_DIRECTORY = `./temp/golang/${directoryId}`;
+  const TEST_FILE_PATH = `${GOLANG_DIRECTORY}/test.go`;
+  const PREVIEW_FILE_PATH = `${GOLANG_DIRECTORY}/main.go`;
+  const TEST_RESULTS_FILE_PATH = `${GOLANG_DIRECTORY}/test-results.txt`;
 
-const PRELUDE = `
-package main
-import (
-  "os"
-  "fmt"
-  "strings"
-)
+  const PRELUDE = `
+  package main
+  import (
+    "os"
+    "fmt"
+    "strings"
+  )
+  
+  // Hack to avoid compilation error from unused imports...
+  var _ = os.Create
+  var __ = fmt.Println
+  var ___ = strings.ToUpper
+  `;
 
-// Hack to avoid compilation error from unused imports...
-var _ = os.Create
-var __ = fmt.Println
-var ___ = strings.ToUpper
-`;
+  const POSTLUDE = `
+  func main() {
+    result := test()
+    resultString := ""
+    if result {
+      resultString = "true"
+    } else {
+      resultString = "false"
+    }
+  
+    // Write the result file
+    f, err := os.Create("${TEST_RESULTS_FILE_PATH}")
+    if err != nil {
+      panic(err)
+    }
+  
+    defer f.Close()
+  
+    _, err2 := f.WriteString(resultString)
+  
+    if err2 != nil {
+      panic(err2)
+    }
+  }
+  `;
 
-const POSTLUDE = `
-func main() {
-	result := test()
-  resultString := ""
-  if result {
-    resultString = "true"
-  } else {
-    resultString = "false"
+  // Create Python temp directory
+  if (!fs.existsSync(GOLANG_DIRECTORY)) {
+    fs.mkdirSync(GOLANG_DIRECTORY);
   }
 
-  // Write the result file
-  f, err := os.Create("${TEST_RESULTS_FILE_PATH}")
-  if err != nil {
-    panic(err)
-  }
+  // Build source file
+  const TEST_FILE = `
+    ${PRELUDE}
+    ${stripMainFunctionIfExists(codeString)}
+    ${testString}
+    ${POSTLUDE}
+  `;
 
-  defer f.Close()
+  // This file runs the user's code in isolation and is used to return
+  // standard output to render in the client preview panel
+  const PREVIEW_FILE = `
+    ${PRELUDE}
+    ${formatPreviewCodeString(codeString)}
+  `;
 
-  _, err2 := f.WriteString(resultString)
+  // Create files for Python script and test results
+  fs.writeFileSync(TEST_RESULTS_FILE_PATH, "");
+  fs.writeFileSync(TEST_FILE_PATH, TEST_FILE);
+  fs.writeFileSync(PREVIEW_FILE_PATH, PREVIEW_FILE);
 
-  if err2 != nil {
-    panic(err2)
-  }
-}
-`;
+  // Run preview file
+  const PREVIEW_RUN_COMMAND = `go run ${PREVIEW_FILE_PATH}`;
+  const previewResult = await exec(PREVIEW_RUN_COMMAND);
+
+  // Run test file
+  const TEST_RUN_COMMAND = `go run ${TEST_FILE_PATH}`;
+  const testResult = await exec(TEST_RUN_COMMAND);
+
+  return createTestResult(previewResult, testResult, TEST_RESULTS_FILE_PATH);
+};
+
+/** ===========================================================================
+ * Utils
+ * ============================================================================
+ */
 
 const MAIN_FUNC_SIGNATURE = "func main()";
 
@@ -98,54 +152,6 @@ const formatPreviewCodeString = (codeString: string) => {
   }
 
   return codeString;
-};
-
-/** ===========================================================================
- * Main Function
- * ----------------------------------------------------------------------------
- * This takes a user code string and test code string, sandwiches them between
- * the prelude and postlude defined above and then runs them with Python.
- * ============================================================================
- */
-
-const compileAndRun = async (
-  codeString: string,
-  testString: string
-): Promise<TestResult> => {
-  // Create Python temp directory
-  if (!fs.existsSync(GOLANG_DIRECTORY)) {
-    fs.mkdirSync(GOLANG_DIRECTORY);
-  }
-
-  // Build source file
-  const TEST_FILE = `
-    ${PRELUDE}
-    ${stripMainFunctionIfExists(codeString)}
-    ${testString}
-    ${POSTLUDE}
-  `;
-
-  // This file runs the user's code in isolation and is used to return
-  // standard output to render in the client preview panel
-  const PREVIEW_FILE = `
-    ${PRELUDE}
-    ${formatPreviewCodeString(codeString)}
-  `;
-
-  // Create files for Python script and test results
-  fs.writeFileSync(TEST_RESULTS_FILE_PATH, "");
-  fs.writeFileSync(TEST_FILE_PATH, TEST_FILE);
-  fs.writeFileSync(PREVIEW_FILE_PATH, PREVIEW_FILE);
-
-  // Run preview file
-  const PREVIEW_RUN_COMMAND = `go run ${PREVIEW_FILE_PATH}`;
-  const previewResult = await exec(PREVIEW_RUN_COMMAND);
-
-  // Run test file
-  const TEST_RUN_COMMAND = `go run ${TEST_FILE_PATH}`;
-  const testResult = await exec(TEST_RUN_COMMAND);
-
-  return createTestResult(previewResult, testResult, TEST_RESULTS_FILE_PATH);
 };
 
 /** ===========================================================================
