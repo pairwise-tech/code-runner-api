@@ -104,7 +104,7 @@ const formatPreviewCodeString = (codeString: string) => {
  * Main Function
  * ----------------------------------------------------------------------------
  * This takes a user code string and test code string, sandwiches them between
- * the prelude and postlude defined above and then runs them with Python.
+ * the prelude and postlude defined above and then runs them with Golang.
  * ============================================================================
  */
 
@@ -112,7 +112,7 @@ const compileAndRun = async (
   codeString: string,
   testString: string
 ): Promise<TestResult> => {
-  // Create Python temp directory
+  // Create Golang temp directory
   if (!fs.existsSync(GOLANG_DIRECTORY)) {
     fs.mkdirSync(GOLANG_DIRECTORY);
   }
@@ -132,7 +132,7 @@ const compileAndRun = async (
     ${formatPreviewCodeString(codeString)}
   `;
 
-  // Create files for Python script and test results
+  // Create files for Golang script and test results
   fs.writeFileSync(TEST_RESULTS_FILE_PATH, "");
   fs.writeFileSync(TEST_FILE_PATH, TEST_FILE);
   fs.writeFileSync(PREVIEW_FILE_PATH, PREVIEW_FILE);
