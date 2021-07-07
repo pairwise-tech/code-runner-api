@@ -83,21 +83,20 @@ export const tryCatchCodeExecution = (testFn: TestExecutor) => {
       const id = shortid.generate();
       const dir = `./temp/${language}/${id}`;
 
-      console.log(`- [LOG]: Creating ${dir}`);
+      // Create the unique temporary challenge directory
       fs.mkdirSync(dir);
 
-      // If not, compute the result
+      // Execute the code
       const result = await testFn(id, codeString, testString);
 
-      console.log(`- [LOG]: Removing ${dir}`);
+      // Remove the unique temporary challenge directory and all contents
       rimraf.sync(dir);
 
-      // Cache the result first, and then return it
+      // Cache the result
       globalCodeCache.set(codeHash, result);
 
       return result;
     } catch (err) {
-      console.log(err);
       return defaultFailureResult;
     }
   };
