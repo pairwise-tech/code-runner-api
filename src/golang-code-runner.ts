@@ -8,59 +8,6 @@ import {
 } from "./utils";
 
 /** ===========================================================================
- * Types & Config
- * ============================================================================
- */
-
-const MAIN_FUNC_SIGNATURE = "func main()";
-
-/**
- * Helper function which strips out a main function, if it exists in
- * a code string, by matching the function signature and the {...}
- * brackets which define the function body.
- */
-const stripMainFunctionIfExists = (codeString: string) => {
-  if (codeString.includes(MAIN_FUNC_SIGNATURE)) {
-    const startingIndex = codeString.indexOf(MAIN_FUNC_SIGNATURE);
-    const firstBracket = startingIndex + MAIN_FUNC_SIGNATURE.length;
-    let brackets = [];
-    let finalIndex;
-
-    for (let i = firstBracket; i < codeString.length; i++) {
-      const character = codeString[i];
-      if (character === "{") {
-        brackets.push(character);
-      } else if (character === "}") {
-        brackets.pop();
-        if (brackets.length === 0) {
-          finalIndex = i + 1;
-          break;
-        }
-      }
-    }
-    if (finalIndex) {
-      return (
-        codeString.substr(0, startingIndex) + codeString.substr(finalIndex)
-      );
-    }
-  }
-
-  // Apply no changes by default
-  return codeString;
-};
-
-/**
- * Add placeholder main function to avoid compilation errors.
- */
-const formatPreviewCodeString = (codeString: string) => {
-  if (!codeString.includes(MAIN_FUNC_SIGNATURE)) {
-    return `${codeString}\nfunc main() {}`;
-  }
-
-  return codeString;
-};
-
-/** ===========================================================================
  * Main Function
  * ----------------------------------------------------------------------------
  * This takes a user code string and test code string, sandwiches them between
@@ -152,6 +99,59 @@ const compileAndRun: TestExecutor = async (
   const testResult = await exec(TEST_RUN_COMMAND);
 
   return createTestResult(previewResult, testResult, TEST_RESULTS_FILE_PATH);
+};
+
+/** ===========================================================================
+ * Utils
+ * ============================================================================
+ */
+
+const MAIN_FUNC_SIGNATURE = "func main()";
+
+/**
+ * Helper function which strips out a main function, if it exists in
+ * a code string, by matching the function signature and the {...}
+ * brackets which define the function body.
+ */
+const stripMainFunctionIfExists = (codeString: string) => {
+  if (codeString.includes(MAIN_FUNC_SIGNATURE)) {
+    const startingIndex = codeString.indexOf(MAIN_FUNC_SIGNATURE);
+    const firstBracket = startingIndex + MAIN_FUNC_SIGNATURE.length;
+    let brackets = [];
+    let finalIndex;
+
+    for (let i = firstBracket; i < codeString.length; i++) {
+      const character = codeString[i];
+      if (character === "{") {
+        brackets.push(character);
+      } else if (character === "}") {
+        brackets.pop();
+        if (brackets.length === 0) {
+          finalIndex = i + 1;
+          break;
+        }
+      }
+    }
+    if (finalIndex) {
+      return (
+        codeString.substr(0, startingIndex) + codeString.substr(finalIndex)
+      );
+    }
+  }
+
+  // Apply no changes by default
+  return codeString;
+};
+
+/**
+ * Add placeholder main function to avoid compilation errors.
+ */
+const formatPreviewCodeString = (codeString: string) => {
+  if (!codeString.includes(MAIN_FUNC_SIGNATURE)) {
+    return `${codeString}\nfunc main() {}`;
+  }
+
+  return codeString;
 };
 
 /** ===========================================================================

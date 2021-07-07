@@ -3,6 +3,7 @@ import rimraf from "rimraf";
 import { ShellString } from "shelljs";
 import shortid from "shortid";
 import { SupportedLanguage } from "./app";
+import hashes from "jshashes";
 
 /** ===========================================================================
  * Shared Utils
@@ -41,16 +42,13 @@ const defaultFailureResult: TestResult = {
  */
 const globalCodeCache: Map<string, TestResult> = new Map();
 
-const removeWhitespace = (x: string) => x.replace(/ /gi, "");
-
 /**
- * Create a unique code key by stringify-ing the code and the strings and
- * removing all whitespace. This will result in long object key strings,
- * but it turns out the size limit for keys is very large, potentially
- * up to the maximum size for a string.
+ * Hash the code string + test string to create a unique key which can
+ * identify this challenge attempt.
  */
-const createCodeKey = (codeString: string, testString: string) => {
-  return removeWhitespace(codeString + testString);
+const getCodeStringHash = (codeString: string, testString: string) => {
+  const code = codeString + testString;
+  return new hashes.SHA256().b64(code);
 };
 
 export type TestExecutor = (
@@ -70,17 +68,18 @@ export const tryCatchCodeExecution = (testFn: TestExecutor) => {
     testString: string
   ): Promise<TestResult> => {
     try {
-      // First compute a key from the input code strings and check if this
-      // combination has been tested previously and recorded in the cache
-      const codeKey = createCodeKey(codeString, testString);
-      const cachedResult = globalCodeCache.get(codeKey);
-      if (cachedResult !== undefined) {
+      const codeHash = getCodeStringHash(codeString, testString);
+      const maybeCachedResult = globalCodeCache.get(codeHash);
+      if (maybeCachedResult !== undefined) {
         console.log(
           `- [LOG]: Returning cached result for ${language} challenge.`
         );
-        return cachedResult;
+        return maybeCachedResult;
       }
 
+      // Create a unique id for a folder for this challenge execution to
+      // occur in. This will be created and then destroyed after the tests
+      // are complete.
       const id = shortid.generate();
       const dir = `./temp/${language}/${id}`;
 
@@ -94,7 +93,7 @@ export const tryCatchCodeExecution = (testFn: TestExecutor) => {
       rimraf.sync(dir);
 
       // Cache the result first, and then return it
-      globalCodeCache.set(codeKey, result);
+      globalCodeCache.set(codeHash, result);
 
       return result;
     } catch (err) {
