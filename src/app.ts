@@ -4,29 +4,7 @@ import cors from "cors";
 import rustCodeRunner from "./rust-code-runner";
 import pythonCodeRunner from "./python-code-runner";
 import golangCodeRunner from "./golang-code-runner";
-
-export type SupportedLanguage = "python" | "golang" | "rust";
-
-const TEMP_DIRECTORY = "temp";
-
-if (!fs.existsSync(TEMP_DIRECTORY)) {
-  console.log(`- [LOG]: ${TEMP_DIRECTORY} does not exist, creating it.`);
-  fs.mkdirSync(TEMP_DIRECTORY);
-}
-
-const tempDirectories = [
-  `${TEMP_DIRECTORY}/python`,
-  `${TEMP_DIRECTORY}/rust`,
-  `${TEMP_DIRECTORY}/golang`,
-];
-
-// Create a local temp directories for each language
-for (const dir of tempDirectories) {
-  if (!fs.existsSync(dir)) {
-    console.log(`- [LOG]: ${dir} does not exist, creating it.`);
-    fs.mkdirSync(dir);
-  }
-}
+import { initializeTempDirectory } from "./utils";
 
 /** ===========================================================================
  * Setup Server
@@ -82,8 +60,12 @@ app.post("/api/golang", async (req: Request, res: Response) => {
 // NOTE: Google App Engine flexible runtime requires exposing port 8080
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () => {
-  console.log(
-    `Pairwise Code Runner API is running on http://localhost:${PORT}`
-  );
-});
+(async () => {
+  await initializeTempDirectory();
+
+  app.listen(PORT, () => {
+    console.log(
+      `\nPairwise Code Runner API is running on http://localhost:${PORT}`
+    );
+  });
+})();

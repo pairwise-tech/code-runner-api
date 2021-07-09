@@ -1,8 +1,8 @@
+import { exec } from "shelljs";
 import fs from "fs";
 import rimraf from "rimraf";
 import { ShellString } from "shelljs";
 import shortid from "shortid";
-import { SupportedLanguage } from "./app";
 import hashes from "jshashes";
 
 /** ===========================================================================
@@ -139,4 +139,43 @@ export const createTestResult = (
   };
 
   return result;
+};
+
+export type SupportedLanguage = "python" | "golang" | "rust";
+
+/**
+ * Handle initialization of the temp directories.
+ */
+export const initializeTempDirectory = async () => {
+  console.log("- [LOG]: Initializing temp directory.");
+
+  const TEMP_DIRECTORY = "temp";
+
+  if (!fs.existsSync(TEMP_DIRECTORY)) {
+    console.log(`- [LOG]: ${TEMP_DIRECTORY} does not exist, creating it.`);
+    fs.mkdirSync(TEMP_DIRECTORY);
+  }
+
+  const tempDirectories = [
+    `${TEMP_DIRECTORY}/python`,
+    `${TEMP_DIRECTORY}/rust`,
+    `${TEMP_DIRECTORY}/golang`,
+  ];
+
+  // Create a local temp directories for each language
+  for (const dir of tempDirectories) {
+    if (!fs.existsSync(dir)) {
+      console.log(`- [LOG]: ${dir} does not exist, creating it.`);
+      fs.mkdirSync(dir);
+    }
+  }
+
+  const CARGO_PACKAGE_DIRECTORY = `${TEMP_DIRECTORY}/rust/cargo-template`;
+
+  if (!fs.existsSync(CARGO_PACKAGE_DIRECTORY)) {
+    console.log(
+      `- [LOG]: ${CARGO_PACKAGE_DIRECTORY} does not exist, creating it.`
+    );
+    await exec(`cargo init ${CARGO_PACKAGE_DIRECTORY}`);
+  }
 };
