@@ -147,8 +147,6 @@ export type SupportedLanguage = "python" | "golang" | "rust";
  * Handle initialization of the temp directories.
  */
 export const initializeTempDirectory = async () => {
-  console.log("- [LOG]: Initializing temp directory.");
-
   const TEMP_DIRECTORY = "temp";
 
   if (!fs.existsSync(TEMP_DIRECTORY)) {

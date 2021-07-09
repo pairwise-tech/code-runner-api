@@ -1,3 +1,4 @@
+import copy from "recursive-copy";
 import fs from "fs";
 import { exec } from "shelljs";
 import { createTestResult, TestExecutor, tryCatchCodeExecution } from "./utils";
@@ -55,8 +56,11 @@ const compileAndRun: TestExecutor = async (
 
   // Create Cargo Package if it doesn't exist
   if (!fs.existsSync(RUST_DIRECTORY)) {
-    console.log(`Creating ${RUST_DIRECTORY}`);
-    await exec(`cargo init ${RUST_DIRECTORY}`);
+    const CARGO_PACKAGE_DIRECTORY = `./temp/rust/cargo-template`;
+    console.log(
+      `- [LOG]: Copying Cargo package template into ${RUST_DIRECTORY}`
+    );
+    await copy(CARGO_PACKAGE_DIRECTORY, RUST_DIRECTORY);
   }
 
   // Build source file

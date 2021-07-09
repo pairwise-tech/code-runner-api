@@ -1,4 +1,3 @@
-import fs from "fs";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import rustCodeRunner from "./rust-code-runner";
