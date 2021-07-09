@@ -1,6 +1,6 @@
 # Pairwise Code Runner API
 
-An Express server which exposes provides an API to evaluate non-JavaScript code challenges, e.g. Python, Rust, etc.
+An Express server which exposes an API to evaluate non-JavaScript code challenges, e.g. Python, Rust, etc.
 
 The app is deployed to: https://pairwise-code-runner-api.uc.r.appspot.com/.
 
