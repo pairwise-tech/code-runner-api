@@ -1,15 +1,9 @@
-import fs from "fs";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import rustCodeRunner from "./rust-code-runner";
 import pythonCodeRunner from "./python-code-runner";
 import golangCodeRunner from "./golang-code-runner";
-
-// Create a local temp directory which will store temporary code output files
-const TEMP_DIRECTORY = "temp";
-if (!fs.existsSync(TEMP_DIRECTORY)) {
-  fs.mkdirSync(TEMP_DIRECTORY);
-}
+import { initializeTempDirectory } from "./utils";
 
 /** ===========================================================================
  * Setup Server
@@ -35,7 +29,7 @@ app.get("/", (req: Request, res: Response) => {
  */
 app.post("/api/rust", async (req: Request, res: Response) => {
   const { codeString, testString } = req.body;
-  const result = await rustCodeRunner(codeString, testString);
+  const result = await rustCodeRunner("rust", codeString, testString);
   res.json(result);
 });
 
@@ -44,7 +38,7 @@ app.post("/api/rust", async (req: Request, res: Response) => {
  */
 app.post("/api/python", async (req: Request, res: Response) => {
   const { codeString, testString } = req.body;
-  const result = await pythonCodeRunner(codeString, testString);
+  const result = await pythonCodeRunner("python", codeString, testString);
   res.json(result);
 });
 
@@ -53,7 +47,7 @@ app.post("/api/python", async (req: Request, res: Response) => {
  */
 app.post("/api/golang", async (req: Request, res: Response) => {
   const { codeString, testString } = req.body;
-  const result = await golangCodeRunner(codeString, testString);
+  const result = await golangCodeRunner("golang", codeString, testString);
   res.json(result);
 });
 
@@ -65,8 +59,12 @@ app.post("/api/golang", async (req: Request, res: Response) => {
 // NOTE: Google App Engine flexible runtime requires exposing port 8080
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () => {
-  console.log(
-    `Pairwise Code Runner API is running on http://localhost:${PORT}`
-  );
-});
+(async () => {
+  await initializeTempDirectory();
+
+  app.listen(PORT, () => {
+    console.log(
+      `\nPairwise Code Runner API is running on http://localhost:${PORT}`
+    );
+  });
+})();

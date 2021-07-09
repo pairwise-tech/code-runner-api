@@ -1,23 +1,31 @@
 import fs from "fs";
 import { exec } from "shelljs";
-import { createTestResult, tryCatchCodeExecution } from "./utils";
+import { createTestResult, TestExecutor, tryCatchCodeExecution } from "./utils";
 
 /** ===========================================================================
- * Types & Config
+ * Main Function
+ * ----------------------------------------------------------------------------
+ * This takes a user code string and test code string, sandwiches them between
+ * the prelude and postlude defined above and then runs them with Python.
  * ============================================================================
  */
 
-const PYTHON_DIRECTORY = "./temp/python-test-folder";
-const TEST_FILE_PATH = `${PYTHON_DIRECTORY}/test.py`;
-const PREVIEW_FILE_PATH = `${PYTHON_DIRECTORY}/main.py`;
-const TEST_RESULTS_FILE_PATH = `${PYTHON_DIRECTORY}/test-results.txt`;
+const compileAndRun: TestExecutor = async (
+  directoryId,
+  codeString,
+  testString
+) => {
+  const PYTHON_DIRECTORY = `./temp/python/${directoryId}`;
+  const TEST_FILE_PATH = `${PYTHON_DIRECTORY}/test.py`;
+  const PREVIEW_FILE_PATH = `${PYTHON_DIRECTORY}/main.py`;
+  const TEST_RESULTS_FILE_PATH = `${PYTHON_DIRECTORY}/test-results.txt`;
 
-// TODO: import requests to make http requests
-// e.g. import requests
-// Then pip install the module in the Docker image
-const PRELUDE = ``;
+  // TODO: import requests to make http requests
+  // e.g. import requests
+  // Then pip install the module in the Docker image
+  const PRELUDE = ``;
 
-const POSTLUDE = `
+  const POSTLUDE = `
 def main():
   result = test()
   resultString = ""
@@ -31,36 +39,19 @@ def main():
   text_file.close()
 
 main()
-`;
+  `;
 
-/** ===========================================================================
- * Main Function
- * ----------------------------------------------------------------------------
- * This takes a user code string and test code string, sandwiches them between
- * the prelude and postlude defined above and then runs them with Python.
- * ============================================================================
- */
-
-const compileAndRun = async (codeString: string, testString: string) => {
   // Create Python temp directory
   if (!fs.existsSync(PYTHON_DIRECTORY)) {
     fs.mkdirSync(PYTHON_DIRECTORY);
   }
 
   // Build source file
-  const TEST_FILE = `
-    ${PRELUDE}
-    ${codeString}
-    ${testString}
-    ${POSTLUDE}
-  `;
+  const TEST_FILE = `${PRELUDE}${codeString}${testString}${POSTLUDE}`;
 
   // This file runs the user's code in isolation and is used to return
   // standard output to render in the client preview panel
-  const PREVIEW_FILE = `
-    ${PRELUDE}
-    ${codeString}
-  `;
+  const PREVIEW_FILE = `${PRELUDE}${codeString}`;
 
   // Create files for Python script and test results
   fs.writeFileSync(TEST_RESULTS_FILE_PATH, "");
