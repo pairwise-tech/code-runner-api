@@ -72,7 +72,7 @@ export const tryCatchCodeExecution = (testFn: TestExecutor) => {
       const maybeCachedResult = globalCodeCache.get(codeHash);
       if (maybeCachedResult !== undefined) {
         console.log(
-          `- [LOG]: Returning cached result for ${language} challenge.`
+          `\n- [RUNNER]: Returning cached result for ${language} challenge.\n`
         );
         return maybeCachedResult;
       }
