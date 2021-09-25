@@ -39,6 +39,8 @@ const defaultFailureResult: TestResult = {
 /**
  * A global cache used to memoize code -> result combinations to reduce
  * compute time and overhead.
+ *
+ * This could be moved to a persistent cache layer, e.g. Redis.
  */
 const globalCodeCache: Map<string, TestResult> = new Map();
 
