@@ -25,7 +25,8 @@ The project also has some linting rules and tests:
 # Apply formatting rules
 $ yarn format
 
-# Run project unit tests
+# Run project unit tests, note that the tests expect the environment
+# to have all of the language dependencies available (e.g. Python, Rust, etc.)
 $ yarn test:unit
 
 # Run project linting and tests
@@ -35,8 +36,14 @@ $ yarn test
 To run the app locally using Docker use the following commands:
 
 ```sh
-# Build the Docker image
+# Build the base image
+$ yarn docker:base:build
+
+# Build the application image
 $ yarn docker:build
+
+# Run unit tests within Docker
+$ yarn docker:test
 
 # Run the container
 $ yarn docker:run

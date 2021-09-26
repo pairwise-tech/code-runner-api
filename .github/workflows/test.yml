@@ -14,20 +14,29 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
-      # Setup NodeJS
-      - name: Setup NodeJS
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12.x
+      # # Setup NodeJS
+      # - name: Setup NodeJS
+      #   uses: actions/setup-node@v1
+      #   with:
+      #     node-version: 12.x
 
-      # Run install and build steps
-      - name: Install Dependencies
-        run: yarn
+      # # Run install and build steps
+      # - name: Install Dependencies
+      #   run: yarn
 
-      # Build the code
-      - name: Build the Project
-        run: yarn build
+      # # Build the code
+      # - name: Build the Project
+      #   run: yarn build
 
-      # Run checks
-      - name: Run Project Checks
-        run: yarn test
+      # # Run checks
+      # - name: Run Project Checks
+      #   run: yarn test
+
+      - name: Build base image
+        run: yarn docker:base:build
+
+      - name: Build docker image
+        run: yarn docker:build
+
+      - name: Run tests
+        run: yarn docker:test
