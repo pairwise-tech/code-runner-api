@@ -9,7 +9,9 @@ steps:
         "build",
         "-t",
         "us-central1-docker.pkg.dev/$PROJECT_ID/pairwise-code-runner-api/image:tag1",
+        "-f",
         "Dockerfile.Deploy",
+        ".",
       ]
   - name: "gcr.io/cloud-builders/gcloud"
     args: ["app", "deploy"]
