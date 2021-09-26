@@ -19,7 +19,10 @@
     "test:unit": "jest",
     "test:watch": "jest --watch",
     "test": "yarn format && yarn test:unit",
+    "test:all": "yarn build && yarn test",
+    "docker:base:build": "docker build -t pairwise-code-runner-base -f Dockerfile.Base .",
     "docker:build": "docker build -t pairwise-code-runner-api-image .",
+    "docker:test": "docker run --rm --name pairwise-code-runner-test pairwise-code-runner-api-image yarn test:all",
     "docker:run": "docker run -d -it --rm -p 8080:8080 --name pairwise-code-runner-api pairwise-code-runner-api-image"
   },
   "dependencies": {
@@ -54,6 +57,9 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "setupFiles": [
+      "<rootDir>/test/setup.ts"
+    ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   }
