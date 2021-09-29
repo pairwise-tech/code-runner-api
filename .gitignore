@@ -37,3 +37,6 @@ dist/
 # Rust Cargo build folder
 cargo-package-folder
 temp/
+
+# Temporary node-localstorage challenge results cache directory
+challenge-results-cache

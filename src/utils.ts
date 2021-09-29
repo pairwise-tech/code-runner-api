@@ -4,6 +4,7 @@ import rimraf from "rimraf";
 import { ShellString } from "shelljs";
 import shortid from "shortid";
 import hashes from "jshashes";
+import { LocalStorage } from "node-localstorage";
 
 /** ===========================================================================
  * Shared Utils
@@ -38,11 +39,36 @@ const defaultFailureResult: TestResult = {
 
 /**
  * A global cache used to memoize code -> result combinations to reduce
- * compute time and overhead.
+ * compute time and overhead. It uses node-localstorage to cache results
+ * on disk on a local temporary file. This is fast and helps for local
+ * development.
  *
- * This could be moved to a persistent cache layer, e.g. Redis.
+ * This could be moved to a persistent cache layer, e.g. Redis, in
+ * production.
  */
-const globalCodeCache: Map<string, TestResult> = new Map();
+class GlobalCodeCacheClass {
+  store = new LocalStorage("./challenge-results-cache");
+
+  get(hash: string): TestResult | null {
+    const result = this.store.getItem(hash);
+    if (result === null) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(result);
+    } catch (err) {
+      console.log("Error parsing cached result: ", err);
+      return null;
+    }
+  }
+
+  set(hash: string, result: TestResult) {
+    this.store.setItem(hash, JSON.stringify(result));
+  }
+}
+
+const globalCodeCache = new GlobalCodeCacheClass();
 
 /**
  * Hash the code string + test string to create a unique key which can
@@ -72,9 +98,11 @@ export const tryCatchCodeExecution = (testFn: TestExecutor) => {
     try {
       const codeHash = getCodeStringHash(codeString, testString);
       const maybeCachedResult = globalCodeCache.get(codeHash);
-      if (maybeCachedResult !== undefined) {
+
+      // Return cached result if it exists
+      if (maybeCachedResult !== null) {
         console.log(
-          `\n- [RUNNER]: Returning cached result for ${language} challenge.\n`
+          `- [CACHE]: Returning cached result for ${language} challenge.`
         );
         return maybeCachedResult;
       }
