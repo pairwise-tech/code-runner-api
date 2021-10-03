@@ -255,7 +255,7 @@ export const handleGuardedCodeExecutionForRustChallenges = async (
   previewCommand: string
 ): Promise<CodeExecutionResult> => {
   // Run in parallel, with a slightly delay for the second...
-  const [previewResult, testResult] = await Promise.all([
+  const [testResult, previewResult] = await Promise.all([
     guardedCodeExecutioner(testRunCommand),
     guardedCodeExecutioner(previewCommand, true),
   ]);
