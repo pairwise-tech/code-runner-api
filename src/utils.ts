@@ -303,8 +303,11 @@ export const guardedCodeExecutioner = async (
   command: string,
   enableSketchyAntiRaceConditionSmallDelay = false
 ): Promise<ShellOutput> => {
+  let processExited = false;
+
   return new Promise(async (resolve) => {
     const onExit = (code: number, stdout: string, stderr: string) => {
+      processExited = true;
       resolve({ code, stdout, stderr });
     };
 
@@ -324,6 +327,11 @@ export const guardedCodeExecutioner = async (
     // infinite loops in the code which we are not interested in running
     // on this server.
     await wait(TWELVE_SECONDS);
+
+    // Nothing to do here, code completed normally.
+    if (processExited) {
+      return;
+    }
 
     // Timeout reached, kill code execution processes
     handleKillProcesses(process);
