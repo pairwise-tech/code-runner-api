@@ -1,7 +1,11 @@
 import copy from "recursive-copy";
 import fs from "fs";
-import { exec } from "shelljs";
-import { createTestResult, TestExecutor, tryCatchCodeExecution } from "./utils";
+import {
+  createTestResult,
+  handleGuardedCodeExecutionForRustChallenges,
+  TestExecutor,
+  tryCatchCodeExecution,
+} from "./utils";
 
 /** ===========================================================================
  * Main Function
@@ -18,11 +22,12 @@ const compileAndRun: TestExecutor = async (
   testString
 ) => {
   const PACKAGE_NAME = "pairwise";
-  const RUST_DIRECTORY = `./temp/rust/${directoryId}/${PACKAGE_NAME}`;
-  const TEST_FILE_PATH = `${RUST_DIRECTORY}/src/main.rs`;
-  const PREVIEW_FILE_PATH = `${RUST_DIRECTORY}/src/main.rs`;
+  const RUST_DIRECTORY_TEST = `./temp/rust/${directoryId}_1/${PACKAGE_NAME}`;
+  const RUST_DIRECTORY_PREVIEW = `./temp/rust/${directoryId}_2/${PACKAGE_NAME}`;
+  const TEST_FILE_PATH = `${RUST_DIRECTORY_TEST}/src/main.rs`;
+  const PREVIEW_FILE_PATH = `${RUST_DIRECTORY_PREVIEW}/src/main.rs`;
   const TEST_RESULTS_FILE_NAME = `test-results.txt`;
-  const TEST_RESULTS_FILE_PATH = `${RUST_DIRECTORY}/${TEST_RESULTS_FILE_NAME}`;
+  const TEST_RESULTS_FILE_PATH = `${RUST_DIRECTORY_TEST}/${TEST_RESULTS_FILE_NAME}`;
 
   /**
    * The prelude and postlude wrap the user's code in a main function. This
@@ -54,13 +59,16 @@ const compileAndRun: TestExecutor = async (
     }
   `;
 
-  // Create Cargo Package if it doesn't exist
-  if (!fs.existsSync(RUST_DIRECTORY)) {
+  // Create test Cargo Package if it doesn't exist
+  if (!fs.existsSync(RUST_DIRECTORY_TEST)) {
     const CARGO_PACKAGE_DIRECTORY = `./temp/rust/cargo-template`;
-    console.log(
-      `- [LOG]: Copying Cargo package template into ${RUST_DIRECTORY}`
-    );
-    await copy(CARGO_PACKAGE_DIRECTORY, RUST_DIRECTORY);
+    await copy(CARGO_PACKAGE_DIRECTORY, RUST_DIRECTORY_TEST);
+  }
+
+  // Create preview Cargo Package if it doesn't exist
+  if (!fs.existsSync(RUST_DIRECTORY_PREVIEW)) {
+    const CARGO_PACKAGE_DIRECTORY = `./temp/rust/cargo-template`;
+    await copy(CARGO_PACKAGE_DIRECTORY, RUST_DIRECTORY_PREVIEW);
   }
 
   // Build source file
@@ -81,16 +89,23 @@ const compileAndRun: TestExecutor = async (
 
   // Run preview file
   fs.writeFileSync(PREVIEW_FILE_PATH, PREVIEW_FILE);
-  const PREVIEW_RUN_COMMAND = `cd ${RUST_DIRECTORY} && cargo run`;
-  const previewResult = await exec(PREVIEW_RUN_COMMAND);
 
   // Run test file
   fs.writeFileSync(TEST_RESULTS_FILE_PATH, "");
   fs.writeFileSync(TEST_FILE_PATH, TEST_FILE);
 
-  // Run tests
-  const TEST_RUN_COMMAND = `cd ${RUST_DIRECTORY} && cargo run`;
-  const testResult = await exec(TEST_RUN_COMMAND);
+  // Build shell commands
+  const TEST_RUN_COMMAND = `cd ${RUST_DIRECTORY_TEST} && cargo run`;
+  const PREVIEW_RUN_COMMAND = `cd ${RUST_DIRECTORY_PREVIEW} && cargo run`;
+
+  // Execute the code
+  const {
+    testResult,
+    previewResult,
+  } = await handleGuardedCodeExecutionForRustChallenges(
+    TEST_RUN_COMMAND,
+    PREVIEW_RUN_COMMAND
+  );
 
   return createTestResult(previewResult, testResult, TEST_RESULTS_FILE_PATH);
 };

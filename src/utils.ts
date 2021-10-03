@@ -1,17 +1,24 @@
 import { exec } from "shelljs";
 import fs from "fs";
 import rimraf from "rimraf";
-import { ShellString } from "shelljs";
 import shortid from "shortid";
 import hashes from "jshashes";
 import { LocalStorage } from "node-localstorage";
+import { ChildProcess } from "child_process";
 
 /** ===========================================================================
  * Shared Utils
  * ============================================================================
  */
 
-export interface Output {
+/**
+ * Artificially wait the provided amount of time.
+ */
+export const wait = async (time = 1000) => {
+  await new Promise((_: any) => setTimeout(_, time));
+};
+
+export interface ShellOutput {
   code: number;
   stdout: string;
   stderr: string;
@@ -19,8 +26,8 @@ export interface Output {
 
 export interface TestResult {
   passed: boolean;
-  testOutput: Output;
-  previewOutput: Output;
+  testOutput: ShellOutput;
+  previewOutput: ShellOutput;
 }
 
 const defaultFailureResult: TestResult = {
@@ -114,13 +121,17 @@ export const tryCatchCodeExecution = (testFn: TestExecutor) => {
       const dir = `./temp/${language}/${id}`;
 
       // Create the unique temporary challenge directory
-      fs.mkdirSync(dir);
+      // Because Rust challenges are run in parallel, there are two separate
+      // directories.
+      fs.mkdirSync(`${dir}_1`);
+      fs.mkdirSync(`${dir}_2`);
 
       // Execute the code
       const result = await testFn(id, codeString, testString);
 
       // Remove the unique temporary challenge directory and all contents
-      rimraf.sync(dir);
+      rimraf.sync(`${dir}_1`);
+      rimraf.sync(`${dir}_2`);
 
       // Cache the result
       globalCodeCache.set(codeHash, result);
@@ -136,8 +147,8 @@ export const tryCatchCodeExecution = (testFn: TestExecutor) => {
  * Format preview and test result output into a standardized response.
  */
 export const createTestResult = (
-  previewOutput: ShellString,
-  testOutput: ShellString,
+  previewOutput: ShellOutput,
+  testOutput: ShellOutput,
   testResultsFilePath: string
 ): TestResult => {
   let passed = false;
@@ -206,4 +217,122 @@ export const initializeTempDirectory = async () => {
     );
     await exec(`cargo init ${CARGO_PACKAGE_DIRECTORY}`);
   }
+};
+
+interface CodeExecutionResult {
+  testResult: ShellOutput;
+  previewResult: ShellOutput;
+}
+
+/**
+ * SPECIAL NOTE: To safeguard against user's running infinitely looping
+ * code, we execute their code against a timeout. If the timeout is reached
+ * we want to abort the code execution. This means we need to kill the process
+ * running their code.
+ *
+ * I found that the pid of the ChildProcess returned from shelljs was not
+ * the actual pid of the process running cargo for compiling Rust code, in
+ * Rust challenges. It seemed another process was started just after the
+ * first. Therefore, the logic here kills the current process AND the next
+ * process, next = next numerically by pid. It also slightly delays the
+ * parallel execution of the second promise in the below function to ensure
+ * the 'next' pid of the first process is into the cargo sub-process.
+ *
+ * Really feels sketchy and quite dangerous but it seems work...
+ *
+ * Grepping for cargo related processes would have the risk of aborting
+ * extraneous other processes which are simultaneously running but not
+ * related to the current challenge.
+ *
+ * Ideally, there is a way to definitely know any/all subprocess pids
+ * of the ChildProcess and abort them directly that way.
+ *
+ * This should be adapted and used for other language types as well. For now
+ * this is only test on Rust challenges.
+ */
+export const handleGuardedCodeExecutionForRustChallenges = async (
+  testRunCommand: string,
+  previewCommand: string
+): Promise<CodeExecutionResult> => {
+  // Run in parallel, with a slightly delay for the second...
+  const [previewResult, testResult] = await Promise.all([
+    guardedCodeExecutioner(testRunCommand),
+    guardedCodeExecutioner(previewCommand, true),
+  ]);
+
+  return {
+    testResult,
+    previewResult,
+  };
+};
+
+// Kill a process... and next process numerically based on pid...
+// See the SPECIAL NOTE above...
+const handleKillProcesses = (process: ChildProcess) => {
+  if (process.killed) {
+    return;
+  }
+
+  let id = process.pid;
+  console.log(`Timeout exceeded, killing process pid: ${process.pid}`);
+
+  // Kill the given process
+  exec(`kill ${id}`);
+  console.log(`Process ${id} killed.`);
+
+  // Increment next id and check the process:
+  id++;
+  const result = exec(`ps ${id}`);
+
+  // If it looks like a cargo process, kill it too...
+  if (result.stdout.includes("cargo")) {
+    console.log(`Cargo process found... killing it as well, pid: ${id}`);
+    exec(`kill ${id}`);
+  }
+};
+
+// Should be long enough
+const TWELVE_SECONDS = 12000;
+
+/**
+ * Run a code execution command against a timeout limit to guard against
+ * infinite loops in user code. Fail if the timeout is exceeded and
+ * kill the process which is running the code execution.
+ */
+export const guardedCodeExecutioner = async (
+  command: string,
+  enableSketchyAntiRaceConditionSmallDelay = false
+): Promise<ShellOutput> => {
+  return new Promise(async (resolve) => {
+    const onExit = (code: number, stdout: string, stderr: string) => {
+      resolve({ code, stdout, stderr });
+    };
+
+    // See SPECIAL NOTE above
+    if (enableSketchyAntiRaceConditionSmallDelay) {
+      await wait(250);
+    }
+
+    // Start command execution
+    const process: ChildProcess = exec(command, onExit);
+    console.log(`Process started, pid: ${process.pid}`);
+
+    // Fallback wait on timeout...
+    // If this time limit is reached and the code has not finished running,
+    // kill the process and return a failure status. We assume the code
+    // should finish execution in this window, otherwise there may be
+    // infinite loops in the code which we are not interested in running
+    // on this server.
+    await wait(TWELVE_SECONDS);
+
+    // Timeout reached, kill code execution processes
+    handleKillProcesses(process);
+
+    resolve({
+      code: 1,
+      stdout: "",
+      stderr:
+        "Code execution failed to complete within time limit and was aborted. Please check your code for any infinite loops.",
+    });
+  });
 };
