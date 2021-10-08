@@ -323,13 +323,22 @@ export const guardedCodeExecutioner = async (
       processExited = true;
 
       /**
+       * If there is a compiler error the stdout will be empty. This is
+       * relevant when processing the unit test challenges, because we
+       * want to surface the stderr compiler output in that case.
+       */
+      const isCompileError = code !== 0 && stdout === "";
+
+      /**
        * When running cargo test, if the tests fail the relevant output
        * is printed to stdout. We want to surface this to the user, but
        * the tests failed so the app is looking for error output in the stderr
        * field. Swap the fields here if the it is a unit test challenge and
        * a non zero exit code.
        */
-      if (isUnitTestChallenge && code !== 0) {
+      const isCargoTestFailure = code !== 0 && !isCompileError;
+
+      if (isUnitTestChallenge && isCargoTestFailure) {
         resolve({ code, stderr: stdout, stdout: stderr });
       } else {
         resolve({ code, stdout, stderr });
