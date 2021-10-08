@@ -86,10 +86,15 @@ const getCodeStringHash = (codeString: string, testString: string) => {
   return new hashes.SHA256().b64(code);
 };
 
+// May contain useful data later... e.g. deps/libs to load for a challenge
+type TestExecutorMeta = any;
+
 export type TestExecutor = (
   directoryId: string,
   codeString: string,
-  testString: string
+  testString: string,
+  isUnitTestChallenge: boolean,
+  meta?: TestExecutorMeta
 ) => Promise<TestResult>;
 
 /**
@@ -100,7 +105,8 @@ export const tryCatchCodeExecution = (testFn: TestExecutor) => {
   return async (
     language: SupportedLanguage,
     codeString: string,
-    testString: string
+    testString: string,
+    isUnitTestChallenge = false
   ): Promise<TestResult> => {
     try {
       const codeHash = getCodeStringHash(codeString, testString);
@@ -127,7 +133,12 @@ export const tryCatchCodeExecution = (testFn: TestExecutor) => {
       fs.mkdirSync(`${dir}_2`);
 
       // Execute the code
-      const result = await testFn(id, codeString, testString);
+      const result = await testFn(
+        id,
+        codeString,
+        testString,
+        isUnitTestChallenge
+      );
 
       // Remove the unique temporary challenge directory and all contents
       rimraf.sync(`${dir}_1`);
@@ -252,12 +263,13 @@ interface CodeExecutionResult {
  */
 export const handleGuardedCodeExecutionForRustChallenges = async (
   testRunCommand: string,
-  previewCommand: string
+  previewCommand: string,
+  isUnitTestChallenge: boolean
 ): Promise<CodeExecutionResult> => {
   // Run in parallel, with a slightly delay for the second...
   const [testResult, previewResult] = await Promise.all([
-    guardedCodeExecutioner(testRunCommand),
-    guardedCodeExecutioner(previewCommand, true),
+    guardedCodeExecutioner(testRunCommand, isUnitTestChallenge),
+    guardedCodeExecutioner(previewCommand, isUnitTestChallenge, true),
   ]);
 
   return {
@@ -301,6 +313,7 @@ const TWELVE_SECONDS = 12000;
  */
 export const guardedCodeExecutioner = async (
   command: string,
+  isUnitTestChallenge: boolean,
   enableSketchyAntiRaceConditionSmallDelay = false
 ): Promise<ShellOutput> => {
   let processExited = false;
@@ -308,7 +321,19 @@ export const guardedCodeExecutioner = async (
   return new Promise(async (resolve) => {
     const onExit = (code: number, stdout: string, stderr: string) => {
       processExited = true;
-      resolve({ code, stdout, stderr });
+
+      /**
+       * When running cargo test, if the tests fail the relevant output
+       * is printed to stdout. We want to surface this to the user, but
+       * the tests failed so the app is looking for error output in the stderr
+       * field. Swap the fields here if the it is a unit test challenge and
+       * a non zero exit code.
+       */
+      if (isUnitTestChallenge && code !== 0) {
+        resolve({ code, stderr: stdout, stdout: stderr });
+      } else {
+        resolve({ code, stdout, stderr });
+      }
     };
 
     // See SPECIAL NOTE above

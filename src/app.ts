@@ -28,8 +28,13 @@ app.get("/", (req: Request, res: Response) => {
  * POST route to handle executing Rust code.
  */
 app.post("/api/rust", async (req: Request, res: Response) => {
-  const { codeString, testString } = req.body;
-  const result = await rustCodeRunner("rust", codeString, testString);
+  const { codeString, testString, isUnitTestChallenge = false } = req.body;
+  const result = await rustCodeRunner(
+    "rust",
+    codeString,
+    testString,
+    isUnitTestChallenge
+  );
   res.json(result);
 });
 
@@ -37,8 +42,13 @@ app.post("/api/rust", async (req: Request, res: Response) => {
  * POST route to handle executing Python code.
  */
 app.post("/api/python", async (req: Request, res: Response) => {
-  const { codeString, testString } = req.body;
-  const result = await pythonCodeRunner("python", codeString, testString);
+  const { codeString, testString, isUnitTestChallenge } = req.body;
+  const result = await pythonCodeRunner(
+    "python",
+    codeString,
+    testString,
+    isUnitTestChallenge
+  );
   res.json(result);
 });
 
@@ -46,8 +56,13 @@ app.post("/api/python", async (req: Request, res: Response) => {
  * POST route to handle executing Golang code.
  */
 app.post("/api/golang", async (req: Request, res: Response) => {
-  const { codeString, testString } = req.body;
-  const result = await golangCodeRunner("golang", codeString, testString);
+  const { codeString, testString, isUnitTestChallenge } = req.body;
+  const result = await golangCodeRunner(
+    "golang",
+    codeString,
+    testString,
+    isUnitTestChallenge
+  );
   res.json(result);
 });
 
