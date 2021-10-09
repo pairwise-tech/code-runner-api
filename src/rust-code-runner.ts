@@ -87,7 +87,7 @@ const compileAndRun: TestExecutor = async (
   `;
 
   const UNIT_TEST_CHALLENGE_TEST_FILE = `
-    ${UNIT_TEST_FILE_PRELUDE}
+    ${UNIT_TEST_FILE_PRELUDE} 
     ${codeString}
   `;
 
