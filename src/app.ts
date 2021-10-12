@@ -21,7 +21,7 @@ app.use(express.json());
  * Index route.
  */
 app.get("/", (req: Request, res: Response) => {
-  res.send("Pairwise Code Runner API is online 🤖");
+  res.send("Pairwise Code Runner API (Rust-only) is active 🤖");
 });
 
 /**
