@@ -232,12 +232,13 @@ export const initializeTempDirectory = async () => {
     console.log(
       `- [LOG]: ${CARGO_PACKAGE_DIRECTORY} does not exist, creating it.`
     );
+    exec("cargo --version");
     const result = exec(`cargo init ${CARGO_PACKAGE_DIRECTORY}`);
     if (result.code !== 0) {
       console.error("Error running cargo command, output: ");
       console.error(result.stderr);
     } else {
-      console.log(result.stdout);
+      console.log("[LOG]: Created cargo project.");
     }
   }
 };
