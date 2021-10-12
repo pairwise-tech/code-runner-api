@@ -17,17 +17,20 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 # Add cargo to path
 ENV PATH="/root/.cargo/bin:${PATH}"
 
+# Install stable Rust
+RUN rustup install stable
+
 # Set default toolchain
 RUN rustup default stable
 
-# Get Go
-COPY --from=golang:1.13-alpine /usr/local/go/ /usr/local/go/
+# # Get Go
+# COPY --from=golang:1.13-alpine /usr/local/go/ /usr/local/go/
  
- # Add go to path
-ENV PATH="/usr/local/go/bin:${PATH}"
+#  # Add go to path
+# ENV PATH="/usr/local/go/bin:${PATH}"
 
-# Get Python formatter
-RUN pip3 install --upgrade autopep8
+# # Get Python formatter
+# RUN pip3 install --upgrade autopep8
 
 # Build the app
 RUN yarn
