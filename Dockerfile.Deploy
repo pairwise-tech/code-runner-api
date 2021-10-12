@@ -17,6 +17,9 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 # Add cargo to path
 ENV PATH="/root/.cargo/bin:${PATH}"
 
+# Set default toolchain
+RUN rustup default stable
+
 # Get Go
 COPY --from=golang:1.13-alpine /usr/local/go/ /usr/local/go/
  
