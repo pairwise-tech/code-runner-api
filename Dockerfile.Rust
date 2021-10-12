@@ -23,6 +23,9 @@ RUN rustup install stable
 # Set default toolchain
 RUN rustup default stable
 
+# Test cargo
+RUN cargo --version
+
 # Build the app
 RUN yarn
 RUN yarn build
