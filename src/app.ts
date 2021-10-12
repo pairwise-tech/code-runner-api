@@ -79,7 +79,7 @@ const PORT = process.env.PORT || 8080;
 
   app.listen(PORT, () => {
     console.log(
-      `\n - Pairwise Code Runner API is running on http://localhost:${PORT}`
+      `\n - Pairwise Code Runner API launched! Running at: http://localhost:${PORT}`
     );
   });
 })();
