@@ -5,6 +5,7 @@ import shortid from "shortid";
 import hashes from "jshashes";
 import { LocalStorage } from "node-localstorage";
 import { ChildProcess } from "child_process";
+import { USE_CHALLENGE_CACHE } from "./env-utils";
 
 /** ===========================================================================
  * Shared Utils
@@ -110,10 +111,14 @@ export const tryCatchCodeExecution = (testFn: TestExecutor) => {
   ): Promise<TestResult> => {
     try {
       const codeHash = getCodeStringHash(codeString, testString);
-      const maybeCachedResult = globalCodeCache.get(codeHash);
+
+      let maybeCachedResult;
+      if (USE_CHALLENGE_CACHE) {
+        maybeCachedResult = globalCodeCache.get(codeHash);
+      }
 
       // Return cached result if it exists
-      if (maybeCachedResult !== null) {
+      if (maybeCachedResult !== null && maybeCachedResult !== undefined) {
         console.log(
           `- [CACHE]: Returning cached result for ${language} challenge.`
         );
@@ -149,6 +154,7 @@ export const tryCatchCodeExecution = (testFn: TestExecutor) => {
 
       return result;
     } catch (err) {
+      console.log("Error evaluating challenge: ", err);
       return defaultFailureResult;
     }
   };
