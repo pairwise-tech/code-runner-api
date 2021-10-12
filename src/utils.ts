@@ -228,10 +228,10 @@ export const initializeTempDirectory = async () => {
 
   // NOTE: For some reason this is necessary on the Cloud Run deployment...
   // but it wasn't necessary on the previous GAE deployment.
-  console.log("Running manual cargo installation and setup on server launch.");
-  exec("rustup --version");
-  exec("rustup default stable");
-  exec("cargo --version");
+  // console.log("Running manual cargo installation and setup on server launch.");
+  // exec("rustup --version");
+  // exec("rustup default stable");
+  // exec("cargo --version");
 
   const CARGO_PACKAGE_DIRECTORY = `${TEMP_DIRECTORY}/rust/cargo-template`;
 
@@ -245,7 +245,7 @@ export const initializeTempDirectory = async () => {
       console.error("Error running cargo command, output: ");
       console.error(result.stderr);
     } else {
-      console.log("[LOG]: Created cargo project.");
+      console.log("- [LOG]: Created cargo project.");
     }
   }
 };
