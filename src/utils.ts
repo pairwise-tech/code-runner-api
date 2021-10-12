@@ -226,13 +226,18 @@ export const initializeTempDirectory = async () => {
     }
   }
 
+  console.log("SETTING UP CARGO");
+  exec("rustup --version");
+  exec("rustup default stable");
+  exec("cargo --version");
+
   const CARGO_PACKAGE_DIRECTORY = `${TEMP_DIRECTORY}/rust/cargo-template`;
 
   if (!fs.existsSync(CARGO_PACKAGE_DIRECTORY)) {
     console.log(
       `- [LOG]: ${CARGO_PACKAGE_DIRECTORY} does not exist, creating it.`
     );
-    exec("cargo --version");
+
     const result = exec(`cargo init ${CARGO_PACKAGE_DIRECTORY}`);
     if (result.code !== 0) {
       console.error("Error running cargo command, output: ");
