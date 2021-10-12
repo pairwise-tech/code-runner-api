@@ -17,15 +17,6 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 # Add cargo to path
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-# Install stable Rust
-RUN rustup install stable
-
-# Set default toolchain
-RUN rustup default stable
-
-# Test cargo
-RUN cargo --version
-
 # Build the app
 RUN yarn
 RUN yarn build

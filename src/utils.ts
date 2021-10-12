@@ -226,7 +226,9 @@ export const initializeTempDirectory = async () => {
     }
   }
 
-  console.log("SETTING UP CARGO");
+  // NOTE: For some reason this is necessary on the Cloud Run deployment...
+  // but it wasn't necessary on the previous GAE deployment.
+  console.log("Running manual cargo installation and setup on server launch.");
   exec("rustup --version");
   exec("rustup default stable");
   exec("cargo --version");
