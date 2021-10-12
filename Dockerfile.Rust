@@ -1,5 +1,5 @@
-# Full Dockerfile - should be used for GCP deployment
-FROM nikolaik/python-nodejs:python3.9-nodejs14-alpine
+# Rust-only Dockerfile
+FROM node:14-alpine
 
 WORKDIR /usr/src/app
 COPY . .
@@ -22,15 +22,6 @@ RUN rustup install stable
 
 # Set default toolchain
 RUN rustup default stable
-
-# Get Go
-COPY --from=golang:1.13-alpine /usr/local/go/ /usr/local/go/
- 
- # Add go to path
-ENV PATH="/usr/local/go/bin:${PATH}"
-
-# Get Python formatter
-RUN pip3 install --upgrade autopep8
 
 # Build the app
 RUN yarn
