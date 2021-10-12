@@ -30,4 +30,4 @@ RUN cargo --version
 RUN yarn
 RUN yarn build
 
-CMD ["node", "build/appz.js"]
+CMD ["node", "build/app.js"]
