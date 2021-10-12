@@ -1,4 +1,4 @@
-# NOTE: Remove the (disabled) in the name to re-enable this build trigger.
+# NOTE: This build trigger will need to be re-enabled in GCP.
 #
 # The file is named differently than the default because the app needs to be deployed
 # using the custom Dockerfile, but there's no way to easily do that and then trigger
